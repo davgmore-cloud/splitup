@@ -38,10 +38,33 @@
             transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
         
-        .liquid-water { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: transparent; transition: height 0.75s ease-out; z-index: 10; }
-        .wave-back, .wave-front { position: absolute; width: 320px; height: 320px; bottom: 30px; left: 50%; border-radius: 42%; transform-origin: 50% 48%; }
-        .wave-back { background: rgba(0, 199, 255, 0.4); animation: ChurnBack 8s linear infinite; z-index: 11; }
-        .wave-front { background: #007aff; box-shadow: inset 0 10px 20px rgba(255,255,255,0.2); animation: ChurnFront 5s linear infinite; z-index: 12; }
+        /* ПЕРЕВЕРНУТЫЙ ОКЕАН: ЗАКРЕПЛЕН НАВЕРХУ, ЖИДКОСТЬ УХОДИТ СВЕРХУ ВНИЗ */
+        .liquid-water { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: transparent; transition: height 0.75s ease-out; z-index: 10; 
+        }
+        
+        /* УЛЬТРА-ПЛАВНЫЕ МЕДЛЕННЫЕ ВОЛНЫ С ИЗМЕНЕННЫМИ КООРДИНАТАМИ */
+        .wave-back, .wave-front { 
+            position: absolute; width: 340px; height: 340px; 
+            top: 75%; left: 50%; border-radius: 41%; 
+            transform-origin: 50% 47%;
+        }
+        
+        /* Задняя волна — замедлена до 18 секунд (очень ленивая) */
+        .wave-back { 
+            background: rgba(0, 199, 255, 0.4); 
+            animation: ChurnBack 18s linear infinite; 
+            z-index: 11; 
+        }
+        
+        /* Передняя основная волна — замедлена до 14 секунд */
+        .wave-front { 
+            background: #007aff; 
+            box-shadow: inset 0 -10px 20px rgba(255,255,255,0.2); 
+            animation: ChurnFront 14s linear infinite; 
+            z-index: 12; 
+        }
         
         @keyframes ChurnBack { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         @keyframes ChurnFront { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(-360deg); } }
@@ -60,7 +83,6 @@
         .form-box { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px; box-sizing: border-box; margin-bottom: 12px; position: relative; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .form-box h3 { margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: var(--text-main); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
         
-        /* ИДЕАЛЬНОЕ ВЫРАВНИВАНИЕ: ТЕКСТ ШАПОК СИДИТ СТРОГО ПО ЦЕНТРУ НАД СВОИМИ ПОЛЯМИ И КНОПКАМИ */
         .table-head { display: flex; gap: 8px; margin-bottom: 5px; padding: 0 4px; font-size: 10px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; box-sizing: border-box; width: 100%; }
         .list-item-row { display: flex; gap: 8px; margin-bottom: 6px; width: 100%; align-items: center; box-sizing: border-box; }
         
@@ -135,7 +157,7 @@
                 </div>
                 <button class="btn-action btn-save" onclick="event.stopPropagation(); saveAllData()">Сохранить расчет</button>
             </div>
-            <!-- ЭКРАН 3: ФИКС ШАПОК КОПИЛКИ (ТЕПЕРЬ ВСЁ СТРОГО ПО ЦЕНТРУ) -->
+            <!-- ЭКРАН 3 -->
             <div class="screen">
                 <h1>Умная копилка</h1>
                 <div class="form-box" onclick="event.stopPropagation()">
@@ -158,8 +180,8 @@
     </div>
     <div class="page-dots"><div id="dot-0" class="dot active"></div><div id="dot-1" class="dot"></div><div id="dot-2" class="dot"></div></div>
     <script>
-        // Изменили имя БД на splitup_v18_db для принудительного стирания старого кэша Safari у всех людей
-        let appData = JSON.parse(localStorage.getItem('splitup_v18_db')) || {
+        // Обновили базу до splitup_v19_db для полной очистки старой памяти Safari у всех людей
+        let appData = JSON.parse(localStorage.getItem('splitup_v19_db')) || {
             salaryDate: 15, advanceDate: 30, piggyPercent: 15,
             incomes: [{ name: "Зарплата", sum: 70000, fixed: true }, { name: "Аванс", sum: 30000, fixed: true }],
             expenses: [{ name: "Кредит", sum: 40000, months: 2, source: "sal" }, { name: "ЖКХ", sum: 5000, months: 1, source: "adv" }],
@@ -205,7 +227,7 @@
         }
         function addItem(type) { if (type === 'incomes') appData.incomes.push({ name: '', sum: 0 }); else if (type === 'expenses') appData.expenses.push({ name: '', sum: 0, months: 1, source: 'sal' }); else appData.targets.push({ name: '', pct: 5, source: 'sal' }); renderForms(); }
         function deleteItem(type, i) { appData[type].splice(i, 1); renderForms(); }
-        function saveAllData() { appData.salaryDate = Number(document.getElementById('dateSalary').value) || 15; appData.advanceDate = Number(document.getElementById('dateAdvance').value) || 30; if (appData.targets.length === 0) appData.piggyPercent = Number(document.getElementById('piggyGlobalPercent').value) || 15; localStorage.setItem('splitup_v18_db', JSON.stringify(appData)); calculateBudget(); setPage(0); }
+        function saveAllData() { appData.salaryDate = Number(document.getElementById('dateSalary').value) || 15; appData.advanceDate = Number(document.getElementById('dateAdvance').value) || 30; if (appData.targets.length === 0) appData.piggyPercent = Number(document.getElementById('piggyGlobalPercent').value) || 15; localStorage.setItem('splitup_v19_db', JSON.stringify(appData)); calculateBudget(); setPage(0); }
         function calculateBudget() {
             let salCash = appData.incomes.find(i => i.name === "Зарплата")?.sum || 0;
             let advCash = appData.incomes.find(i => i.name === "Аванс")?.sum || 0;
@@ -249,12 +271,20 @@
 
             let core = document.getElementById('coreCircle'); let waterLayer = document.getElementById('waterLayer');
             let totalGlobalIncome = salTotalIncome + advTotalIncome;
+            
             if (totalGlobalIncome > 0) {
                 let lifeRatio = totalFreeMoney / totalGlobalIncome;
                 let scale = 0.65 + (lifeRatio * 0.35); if(core) core.style.transform = 'scale(' + scale + ')';
-                let hPct = lifeRatio * 100; if (totalFreeMoney === 0 && (salExpensesSum + advExpensesSum) > 0) hPct = 5;
+                
+                // ИСПРАВЛЕННАЯ МАТЕМАТИКА: Инвертируем заполняемость, чтобы она опускалась СВЕРХУ ВНИЗ
+                // Полный бюджет (100% денег) = 100% высоты синевы. Денег 0% = высота синевы падает на дно
+                let hPct = lifeRatio * 100; 
+                if (totalFreeMoney === 0 && (salExpensesSum + advExpensesSum) > 0) hPct = 5;
                 if(waterLayer) waterLayer.style.height = hPct + '%';
-            } else { if(core) core.style.transform = 'scale(0.65)'; if(waterLayer) waterLayer.style.height = '0%'; }
+            } else { 
+                if(core) core.style.transform = 'scale(0.65)'; 
+                if(waterLayer) waterLayer.style.height = '0%'; 
+            }
 
             let planList = document.getElementById('calendarPlanList'); planList.innerHTML = '';
             planList.innerHTML += '<div class="zone-header">Внести ' + appData.salaryDate + ' числа</div><div class="zone-list">' + (salListHTML || '<div class="plan-card"><div class="row-sub">Трат из зарплаты нет</div></div>') + '</div>';
