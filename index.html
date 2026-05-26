@@ -40,7 +40,7 @@
         
         .liquid-water { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to top, #007aff, #00c7ff); transition: height 0.75s ease-out; z-index: 10; }
         .liquid-water::before, .liquid-water::after { content: ""; position: absolute; width: 260px; height: 260px; bottom: 85%; left: 50%; background: rgba(255, 255, 255, 0.25); border-radius: 43%; animation: Churn 6s linear infinite; transform: translateX(-50%); z-index: 11; }
-        .liquid-water::after { background: rgba(0, 122, 255, 0.15); border-radius: 40%; animation-duration: 9s; bottom: 87%; }
+        .liquid-water::after { background: rgba(0, 122, 255, 0.15); border-radius: 40%; animation-duration: 9s; bottom: 88%; }
         @keyframes Churn { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
 
         .free-money-box { text-align: center; margin: 5px 0 20px 0; flex-shrink: 0; }
@@ -56,10 +56,7 @@
 
         .form-box { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px; box-sizing: border-box; margin-bottom: 12px; position: relative; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
         .form-box h3 { margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: var(--text-main); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* ИСПРАВЛЕННЫЙ ТАБЛИЧНЫЙ СТИЛЬ: ДЕЛАЕТ ВСЕ СТРОКИ ИДЕАЛЬНО РОВНЫМИ */
         .table-head { display: flex; gap: 6px; margin-bottom: 5px; padding: 0 4px; font-size: 10px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; box-sizing: border-box; }
-        .list-item-row { display: flex; gap: 6px; margin-bottom: 6px; width: 100%; align-items: center; box-sizing: border-box; }
         
         .th-name, .list-item-row .f-name { flex: 2; min-width: 0; } 
         .th-sum, .list-item-row .f-sum { flex: 1.3; min-width: 0; } 
@@ -144,7 +141,8 @@
     </div>
     <div class="page-dots"><div id="dot-0" class="dot active"></div><div id="dot-1" class="dot"></div><div id="dot-2" class="dot"></div></div>
     <script>
-        let appData = JSON.parse(localStorage.getItem('splitup_v14_db')) || {
+        // Использована база splitup_v15_db для принудительной чистки кэша на iPhone
+        let appData = JSON.parse(localStorage.getItem('splitup_v15_db')) || {
             salaryDate: 15, advanceDate: 30, piggyPercent: 15,
             incomes: [{ name: "Зарплата", sum: 70000, fixed: true }, { name: "Аванс", sum: 30000, fixed: true }],
             expenses: [{ name: "Кредит", sum: 40000, months: 2, source: "sal" }, { name: "ЖКХ", sum: 5000, months: 1, source: "adv" }],
@@ -190,35 +188,50 @@
         }
         function addItem(type) { if (type === 'incomes') appData.incomes.push({ name: '', sum: 0 }); else if (type === 'expenses') appData.expenses.push({ name: '', sum: 0, months: 1, source: 'sal' }); else appData.targets.push({ name: '', pct: 5, source: 'sal' }); renderForms(); }
         function deleteItem(type, i) { appData[type].splice(i, 1); renderForms(); }
-        function saveAllData() { appData.salaryDate = Number(document.getElementById('dateSalary').value) || 15; appData.advanceDate = Number(document.getElementById('dateAdvance').value) || 30; if (appData.targets.length === 0) appData.piggyPercent = Number(document.getElementById('piggyGlobalPercent').value) || 15; localStorage.setItem('splitup_v14_db', JSON.stringify(appData)); calculateBudget(); setPage(0); }
+        function saveAllData() { appData.salaryDate = Number(document.getElementById('dateSalary').value) || 15; appData.advanceDate = Number(document.getElementById('dateAdvance').value) || 30; if (appData.targets.length === 0) appData.piggyPercent = Number(document.getElementById('piggyGlobalPercent').value) || 15; localStorage.setItem('splitup_v15_db', JSON.stringify(appData)); calculateBudget(); setPage(0); }
         function calculateBudget() {
             let salCash = appData.incomes.find(i => i.name === "Зарплата")?.sum || 0;
             let advCash = appData.incomes.find(i => i.name === "Аванс")?.sum || 0;
             let extraIncomes = appData.incomes.filter(i => !i.fixed).reduce((acc, c) => acc + (c.sum || 0), 0);
             
-            let salTotalIncome = salCash + extraIncomes; let advTotalIncome = advCash;
-            let salListHTML = ''; let advListHTML = ''; let salExpensesSum = 0; let advExpensesSum = 0;
+            let salTotalIncome = salCash + extraIncomes; 
+            let advTotalIncome = advCash;
+            
+            let salListHTML = ''; 
+            let advListHTML = ''; 
+            let salExpensesSum = 0; 
+            let advExpensesSum = 0; 
+            let totalExpenseThisMonth = 0;
 
             for(let i=0; i<appData.expenses.length; i++) {
-                let item = appData.expenses[i]; let m = Number(item.months) || 1; if (m < 1) m = 1;
-                let costThisMonth = (item.sum || 0) / m; totalExpenseThisMonth += costThisMonth;
+                let item = appData.expenses[i]; 
+                let m = Number(item.months) || 1; if (m < 1) m = 1;
+                let costThisMonth = (item.sum || 0) / m; 
+                totalExpenseThisMonth += costThisMonth;
+                
                 let isPrio = (i === 0);
                 let cardHTML = '<div class="plan-card ' + (isPrio ? 'priority' : '') + '"><div class="row-main"><span style="' + (isPrio ? 'color:var(--accent-red)' : '') + '">' + (i+1) + '. ' + (item.name || 'Долг') + '</span><span>' + Math.round(costThisMonth).toLocaleString() + ' ₽</span></div><div class="row-sub">Срок рассрочки: ' + m + ' мес.</div></div>';
+
                 if (item.source === 'adv') { advExpensesSum += costThisMonth; advListHTML += cardHTML; } 
                 else { salExpensesSum += costThisMonth; salListHTML += cardHTML; }
             }
 
-            let currentPiggyPercent = appData.piggyPercent; if (appData.targets.length > 0) currentPiggyPercent = appData.targets.reduce((acc, t) => acc + (t.pct || 0), 0);
+            let currentPiggyPercent = appData.piggyPercent; 
+            if (appData.targets.length > 0) currentPiggyPercent = appData.targets.reduce((acc, t) => acc + (t.pct || 0), 0);
+            
             let salRemainder = salTotalIncome - salExpensesSum; if (salRemainder < 0) salRemainder = 0;
             let textRemainder = advTotalIncome - advExpensesSum; if (textRemainder < 0) textRemainder = 0;
 
-            let salPiggySum = 0; let advPiggySum = 0;
+            let salPiggySum = 0; 
+            let advPiggySum = 0;
             let totalRemainder = salRemainder + textRemainder;
             let globalPiggySum = (totalRemainder * currentPiggyPercent) / 100;
 
             for(let i=0; i<appData.targets.length; i++) {
-                let t = appData.targets[i]; let part = Math.round((globalPiggySum * (t.pct || 0)) / (currentPiggyPercent || 1));
+                let t = appData.targets[i]; 
+                let part = Math.round((globalPiggySum * (t.pct || 0)) / (currentPiggyPercent || 1));
                 let targetCardHTML = '<div class="plan-card" style="border-left: 4px solid var(--accent-amber)"><div class="row-main"><span style="color:var(--accent-amber)">🔒 Сейф: ' + (t.name || 'Цель') + '</span><span style="color:var(--accent-amber)">' + part.toLocaleString() + ' ₽</span></div><div class="row-sub">Накопления по цели (' + t.pct + '%)</div></div>';
+
                 if (t.source === 'adv') { advPiggySum += part; advListHTML += targetCardHTML; } 
                 else { salPiggySum += part; salListHTML += targetCardHTML; }
             }
@@ -229,18 +242,24 @@
 
             document.getElementById('freeMoneyText').innerText = Math.round(totalFreeMoney).toLocaleString('ru-RU') + ' ₽';
 
-            let core = document.getElementById('coreCircle'); let waterLayer = document.getElementById('waterLayer');
+            let core = document.getElementById('coreCircle'); 
+            let waterLayer = document.getElementById('waterLayer');
             let totalGlobalIncome = salTotalIncome + advTotalIncome;
+            
             if (totalGlobalIncome > 0) {
                 let lifeRatio = totalFreeMoney / totalGlobalIncome;
                 let scale = 0.65 + (lifeRatio * 0.35); if(core) core.style.transform = 'scale(' + scale + ')';
                 let hPct = lifeRatio * 100; if (totalFreeMoney === 0 && (salExpensesSum + advExpensesSum) > 0) hPct = 8;
                 if(waterLayer) waterLayer.style.height = hPct + '%';
-            } else { if(core) core.style.transform = 'scale(0.65)'; if(waterLayer) waterLayer.style.height = '0%'; }
+            } else { 
+                if(core) core.style.transform = 'scale(0.65)'; 
+                if(waterLayer) waterLayer.style.height = '0%'; 
+            }
 
             let planList = document.getElementById('calendarPlanList'); planList.innerHTML = '';
-            planList.innerHTML += '<div class="zone-header">Внести ' + appData.salaryDate + ' Bird</div><div class="zone-list">' + (salListHTML || '<div class="plan-card"><div class="row-sub">Трат из зарплаты нет</div></div>') + '</div>';
-            planList.innerHTML += '<div class="zone-header">Внести ' + appData.advanceDate + ' Bird</div><div class="zone-list">' + (advListHTML || '<div class="plan-card"><div class="row-sub">Трат из аванса нет</div></div>') + '</div>';
+            
+            planList.innerHTML += '<div class="zone-header">Внести ' + appData.salaryDate + ' числа</div><div class="zone-list">' + (salListHTML || '<div class="plan-card"><div class="row-sub">Трат из зарплаты нет</div></div>') + '</div>';
+            planList.innerHTML += '<div class="zone-header">Внести ' + appData.advanceDate + ' числа</div><div class="zone-list">' + (advListHTML || '<div class="plan-card"><div class="row-sub">Трат из аванса нет</div></div>') + '</div>';
         }
         calculateBudget();
     </script>
