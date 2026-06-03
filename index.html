@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>SplitUp Pro</title>
-    <!-- Поддержка PWA режима на смартфонах -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#f4f6fa">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <style>
         :root {
             --bg-color: #f4f6fa;
@@ -19,97 +17,125 @@
             --accent-amber: #f59e0b;
             --accent-red: #ef4444;
             --accent-green: #10b981;
+            
+            /* Динамические переменные цвета океана */
+            --wave-color-front: #007aff;
+            --wave-color-back: rgba(0, 199, 255, 0.4);
+            --circle-bg-tint: #e0f2fe;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
             margin: 0; padding: 0; display: flex; flex-direction: column;
-            height: 100vh; user-select: none; overflow: hidden; position: relative;
+            height: 100vh; box-sizing: border-box; user-select: none; overflow: hidden;
+            position: relative;
         }
         .slider-container { width: 100%; height: 100%; overflow: hidden; position: relative; z-index: 10; }
-        .slider-wrapper { display: flex; width: 300%; height: 100%; transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
-        .screen { 
-            width: 33.3333%; height: 100%; display: flex; flex-direction: column; 
-            align-items: center; padding: calc(16px + env(safe-area-inset-top)) 14px calc(85px + env(safe-area-inset-bottom)) 14px; 
-            overflow-y: auto; box-sizing: border-box; flex-shrink: 0; -webkit-overflow-scrolling: touch; 
-        }
-        h1 { font-size: 22px; margin: 5px 0 15px 0; font-weight: 800; letter-spacing: -0.5px; text-align: center; }
-        
-        /* КРУГ И ДИНАМИЧЕСКИЕ ВОЛНЫ */
-        .circle-outer { position: relative; width: 170px; height: 170px; display: flex; justify-content: center; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
+        .slider-wrapper { display: flex; width: 300%; height: 100%; transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
+        .screen { width: 33.3333%; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 16px 14px 85px 14px; overflow-y: auto; box-sizing: border-box; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
+        h1 { font-size: 22px; margin: 5px 0 20px 0; font-weight: 800; letter-spacing: -0.5px; text-align: center; }
+        /* КРУГ И ПЛАВНЫЕ ЛЕНИВЫЕ ВОЛНЫ */
+        .circle-outer { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; flex-shrink: 0; }
         .circle-container { 
-            position: relative; width: 145px; height: 145px; border-radius: 50%; 
-            background: #e0f2fe; overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0, 122, 255, 0.15), inset 0 0 0 2px rgba(0, 122, 255, 0.1); 
-            z-index: 5; transition: all 0.5s ease; 
+            position: relative; width: 165px; height: 165px; border-radius: 50%; 
+            background: var(--circle-bg-tint); overflow: hidden;
+            box-shadow: 0 12px 30px rgba(0, 122, 255, 0.15), inset 0 0 0 2px rgba(0, 122, 255, 0.2); 
+            border: none; z-index: 5; display: flex; justify-content: center; align-items: center; 
+            transition: background 0.5s ease, box-shadow 0.5s ease; 
         }
-        .liquid-water { position: absolute; left: 0; width: 100%; height: 100%; background: transparent; z-index: 10; bottom: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
-        .wave-back, .wave-front { position: absolute; width: 300px; height: 300px; bottom: -20px; left: 50%; border-radius: 42%; transform-origin: 50% 48%; transition: background 0.5s ease; }
-        .wave-back { background: rgba(0, 199, 255, 0.4); animation: ChurnBack 16s linear infinite; z-index: 11; }
-        .wave-front { background: var(--accent-blue); box-shadow: inset 0 -10px 20px rgba(255,255,255,0.15); animation: ChurnFront 12s linear infinite; z-index: 12; }
+        
+        .liquid-water { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: transparent; transition: transform 0.75s ease-out; z-index: 10; 
+        }
+        
+        /* Возвращены оригинальные ленивые ультра-плавные волны */
+        .wave-back, .wave-front { 
+            position: absolute; width: 340px; height: 340px; 
+            top: 75%; left: 50%; border-radius: 41%; 
+            transform-origin: 50% 47%; transition: background 0.5s ease;
+        }
+        
+        /* Задняя волна — 18 секунд (очень ленивая) */
+        .wave-back { 
+            background: var(--wave-color-back); 
+            animation: ChurnBack 18s linear infinite; 
+            z-index: 11; 
+        }
+        
+        /* Передняя основная волна — 14 секунд */
+        .wave-front { 
+            background: var(--wave-color-front); 
+            box-shadow: inset 0 -10px 20px rgba(255,255,255,0.2); 
+            animation: ChurnFront 14s linear infinite; 
+            z-index: 12; 
+        }
         
         @keyframes ChurnBack { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         @keyframes ChurnFront { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(-360deg); } }
 
-        /* ИНФОРМАЦИОННЫЕ ПАНЕЛИ */
-        .free-money-box { text-align: center; margin: 0 0 15px 0; flex-shrink: 0; }
-        .free-money-box .value { font-size: 26px; font-weight: 850; color: var(--accent-blue); letter-spacing: -0.5px; transition: color 0.3s; }
-        .free-money-box .label { font-size: 11px; color: var(--text-gray); font-weight: 700; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        /* ИНФОРМАЦИОННЫЕ БЛОКИ И ИИ-АССИСТЕНТ */
+        .free-money-box { text-align: center; margin: 5px 0 20px 0; flex-shrink: 0; }
+        .free-money-box .value { font-size: 28px; font-weight: 850; color: var(--accent-blue); letter-spacing: -0.5px; transition: color 0.3s ease; }
+        .free-money-box .label { font-size: 12px; color: var(--text-gray); font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
         
-        /* КАРТОЧКА АССИСТЕНТА */
+        /* Интерактивная карточка отчетов ИИ */
         .assistant-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 16px; padding: 14px; width: 100%; max-width: 380px; box-sizing: border-box; margin-bottom: 15px; font-size: 13px; line-height: 1.45; transition: all 0.3s ease; }
-        .assistant-card.warn { background: #fffbeb; border-color: #fde68a; }
         .assistant-card.crisis { background: #fef2f2; border-color: #fca5a5; }
         .assistant-title { font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
-        /* ПЛАН И ТАБЛИЦА РАСХОДОВ */
+
         .plan-container { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
-        .zone-header { font-size: 11px; color: var(--text-gray); font-weight: 700; text-align: center; margin: 5px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
-        .zone-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .zone-header { font-size: 13px; color: var(--text-gray); font-weight: 700; text-align: center; margin: 15px 0 10px 0; text-transform: uppercase; }
+        .zone-list { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 10px; }
         .plan-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; box-shadow: 0 2px 6px rgba(0,0,0,0.01); }
         .plan-card .row-main { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; }
-        .plan-card .row-sub { font-size: 11px; color: var(--text-gray); margin-top: 3px; font-weight: 600; }
-
-        /* ФОРМА И СЕТКА ТАБЛИЦЫ */
-        .form-box { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px; box-sizing: border-box; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .form-box h3 { margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: var(--text-main); font-weight: 800; letter-spacing: 0.3px; }
+        .plan-card .row-sub { font-size: 12px; color: var(--text-gray); margin-top: 3px; }
+        /* ТАБЛИЦА И ФОРМЫ */
+        .form-box { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px; box-sizing: border-box; margin-bottom: 12px; position: relative; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .form-box h3 { margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: var(--text-main); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
         
-        /* Защита от сжатия на iPhone SE */
-        .table-head { display: flex; gap: 6px; margin-bottom: 6px; padding: 0 4px; font-size: 10px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; box-sizing: border-box; }
-        .list-item-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; box-sizing: border-box; }
+        .table-head { display: flex; gap: 8px; margin-bottom: 5px; padding: 0 4px; font-size: 10px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; box-sizing: border-box; width: 100%; }
+        .list-item-row { display: flex; gap: 8px; margin-bottom: 6px; width: 100%; align-items: center; box-sizing: border-box; }
         
-        .th-pr, .f-pr { width: 42px; text-align: center; flex-shrink: 0; }
-        .th-name, .f-name { flex: 2; min-width: 0; }
-        .th-sum, .f-sum { width: 85px; flex-shrink: 0; text-align: center; }
-        .th-del, .btn-delete { width: 24px; text-align: center; flex-shrink: 0; }
+        .th-name { flex: 2; text-align: center; min-width: 0; }
+        .list-item-row .f-name { flex: 2; min-width: 0; text-align: left; }
+        
+        .th-sum, .list-item-row .f-sum { width: 85px; flex-shrink: 1; min-width: 0; text-align: center; }
+        .th-toggle, .list-item-row .f-toggle, .toggle-btn { width: 75px; text-align: center; flex-shrink: 0; }
+        .th-space, .btn-delete { width: 24px; text-align: center; flex-shrink: 0; }
 
-        .input-inline { display: flex; gap: 10px; margin-bottom: 4px; align-items: center; justify-content: space-between; }
+        .input-inline { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; justify-content: space-between; }
         .input-inline label { font-size: 13px; font-weight: 600; }
-        .input-inline input { width: 100px; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 6px; padding: 6px; text-align: center; font-size: 13px; outline: none; font-weight: 700; }
+        .input-inline input { width: 85px; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 6px; padding: 6px; text-align: center; font-size: 13px; outline: none; font-weight: 600; }
 
-        .list-item-row input, .list-item-row select { width: 100%; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; color: var(--text-main); font-size: 13px; outline: none; box-sizing: border-box; font-weight: 600; height: 36px; -webkit-appearance: none; }
-        .list-item-row select { text-align-last: center; font-size: 15px; padding: 6px 2px; cursor: pointer; border-color: var(--card-border); }
-        .list-item-row input:focus, .list-item-row select:focus { border-color: var(--accent-blue); background: #ffffff; }
+        .list-item-row input { background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 8px; padding: 9px; color: var(--text-main); font-size: 13px; outline: none; box-sizing: border-box; font-weight: 500; height: 36px; width: 100%; }
+        .list-item-row input:focus { border-color: var(--accent-blue); background: #ffffff; }
 
-        .btn-delete { background: none; border: none; color: var(--accent-red); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; height: 36px; }
-        .btn-add { width: 100%; background: var(--bg-color); border: 1px dashed rgba(0,122,255,0.3); padding: 10px; border-radius: 10px; font-weight: 700; color: var(--accent-blue); cursor: pointer; font-size: 13px; outline: none; transition: background 0.2s; }
-        .btn-add:active { background: #e0f2fe; }
+        /* Трехпозиционная кнопка по типу скриншота */
+        .toggle-btn { height: 34px; border-radius: 8px; border: 1px solid var(--card-border); background: var(--bg-color); color: #fff; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; transition: all 0.2s ease; box-sizing: border-box; }
+        .toggle-btn.pr-1 { background: var(--accent-red) !important; border-color: var(--accent-red) !important; }
+        .toggle-btn.pr-2 { background: var(--accent-amber) !important; border-color: var(--accent-amber) !important; }
+        .toggle-btn.pr-3 { background: var(--accent-green) !important; border-color: var(--accent-green) !important; }
 
-        /* ТАБ-ВЕРСТКА НИЖНЕЙ ПАНЕЛИ */
-        .tab-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: calc(60px + env(safe-area-inset-bottom)); background: rgba(255,255,255,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
-        .tab-item { display: flex; flex-direction: column; align-items: center; color: var(--text-gray); font-size: 10px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; letter-spacing: 0.3px; padding-top: 6px; }
-        .tab-item.active { color: var(--accent-blue); }
-        .tab-item svg { width: 20px; height: 20px; margin-bottom: 2px; fill: currentColor; }
+        .btn-delete { background: none; border: none; color: var(--text-gray); font-size: 15px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
+        .btn-add { width: 100%; background: var(--bg-color); border: 1px dashed var(--card-border); padding: 10px; border-radius: 10px; font-weight: 600; color: var(--accent-blue); cursor: pointer; font-size: 13px; outline: none; }
+
+        /* НАВИГАЦИОННЫЕ ТОЧКИ В СТИЛЕ IOS (ВМЕСТО ТАБ-БАРА) */
+        .ios-nav-dots { position: absolute; bottom: 15px; left: 0; width: 100%; display: flex; justify-content: center; gap: 8px; z-index: 100; pointer-events: none; padding-bottom: env(safe-area-inset-bottom); }
+        .dot { width: 7px; height: 7px; background: rgba(0,0,0,0.15); border-radius: 50%; transition: background 0.2s, transform 0.2s; }
+        .dot.active { background: var(--text-main); transform: scale(1.15); }
     </style>
 </head>
 <body>
 
     <div class="slider-container">
+        <!-- Горизонтальная лента без жестких табов, переключение только программно по кликам -->
         <div class="slider-wrapper" id="mainSlider">
             
-            <!-- ЭКРАН 1: ГЛАВНЫЙ С ВОЛНАМИ И СОВЕТНИКОМ -->
-            <div class="screen">
-                <h1>Финансовый Сектор</h1>
+            <!-- ЭКРАН 1: ГЛАВНЫЙ С ЖИВЫМ ОКЕАНОМ И АССИСТЕНТОМ -->
+            <div class="screen" onclick="handleSideTap(event, 0)">
+                <h1>Обзор Бюджета</h1>
                 <div class="circle-outer">
                     <div class="circle-container" id="circleBound">
                         <div class="liquid-water" id="waterLevel">
@@ -121,198 +147,218 @@
                 
                 <div class="free-money-box">
                     <div class="value" id="freeBudgetDisplay">0 ₽</div>
+                    <!-- Текст "Кассовый разрыв" удален по требованию, осталась чистая метка -->
                     <div class="label" id="budgetLabel">Свободный остаток</div>
                 </div>
 
-                <!-- Блок ИИ-помощника -->
+                <!-- Карточка умных долгосрочных отчетов ИИ -->
                 <div class="assistant-card" id="assistantCard">
-                    <div class="assistant-title" id="assistantTitle">🧠 Финансовый Ассистент</div>
-                    <div id="assistantText">Синхронизация данных...</div>
+                    <div class="assistant-title">🧠 Финансовый Ассистент</div>
+                    <div id="assistantText">Анализ финансового здоровья...</div>
                 </div>
 
                 <div class="plan-container">
-                    <div class="zone-header">Оптимальный план расходов</div>
+                    <div class="zone-header">Ближайшие распределения</div>
                     <div class="zone-list" id="summaryContainer"></div>
                 </div>
             </div>
 
-            <!-- ЭКРАН 2: ВВОД ДОХОДОВ -->
-            <div class="screen">
-                <h1>Параметры Дохода</h1>
+            <!-- ЭКРАН 2: НАСТРОЙКА ИСТОЧНИКОВ ДОХОДА -->
+            <div class="screen" onclick="handleSideTap(event, 1)">
+                <h1>Настройки Сплита</h1>
                 <div class="form-box">
-                    <h3>Общий доход</h3>
+                    <h3>Общие параметры</h3>
                     <div class="input-inline">
-                        <label>Ваш ежемесячный доход:</label>
-                        <input type="number" id="totalIncomeInput" value="100000" oninput="calculateSplits()" pattern="[0-9]*" inputmode="numeric">
+                        <label>Общий лимит фонда:</label>
+                        <input type="number" id="totalBudgetInput" value="100000" oninput="calculateSplits()" pattern="[0-9]*" inputmode="numeric">
                     </div>
                 </div>
                 <div class="form-box">
-                    <h3>О приложении</h3>
-                    <div style="font-size: 13px; color: var(--text-gray); line-height: 1.45; font-weight: 500;">
-                        SplitUp Pro автоматически распределяет средства по приоритетам и категориям. Укажите доходы и расходы для точного анализа.
+                    <h3>Подсказка</h3>
+                    <div style="font-size: 13px; color: var(--text-gray); line-height: 1.45;">
+                        Тапайте по левой или правой трети экрана для навигации между вкладками, как в оригинальной iOS-версии.
                     </div>
                 </div>
             </div>
 
-            <!-- ЭКРАН 3: ТАБЛИЦА С ПРИОРИТЕТАМИ -->
-            <div class="screen">
-                <h1>Лист Расходов</h1>
+            <!-- ЭКРАН 3: СПИСОК РАСХОДОВ С КНОПКАМИ-ПРИОРИТЕТАМИ -->
+            <div class="screen" onclick="handleSideTap(event, 2)">
+                <h1>Получатели</h1>
                 <div class="form-box" style="max-width: 100%;">
-                    <h3>Редактор затрат</h3>
+                    <h3>Список начислений</h3>
                     <div class="table-head">
-                        <div class="th-pr">Приор.</div>
-                        <div class="th-name">Название статьи</div>
-                        <div class="th-sum">Сумма (₽)</div>
-                        <div class="th-del"></div>
+                        <div class="th-name">Имя статьи</div>
+                        <div class="th-sum">Сумма</div>
+                        <div class="th-toggle">Приоритет</div>
+                        <div class="th-space"></div>
                     </div>
                     <div id="rowsContainer"></div>
-                    <button class="btn-add" onclick="addNewRow()">+ Добавить расход</button>
+                    <button class="btn-add" onclick="addNewRow()">+ Добавить позицию</button>
                 </div>
             </div>
 
         </div>
     </div>
-    <!-- НИЖНИЙ НАВИГАЦИОННЫЙ ТАБ-БАР -->
-    <div class="tab-bar">
-        <div class="tab-item active" onclick="switchTab(0)">
-            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-            Главная
-        </div>
-        <div class="tab-item" onclick="switchTab(1)">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
-            Доход
-        </div>
-        <div class="tab-item" onclick="switchTab(2)">
-            <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
-            Расходы
-        </div>
-    </div>
 
+    <!-- Оригинальные точки пагинации iOS снизу экрана -->
+    <div class="ios-nav-dots">
+        <div class="dot active" id="dot0"></div>
+        <div class="dot" id="dot1"></div>
+        <div class="dot" id="dot2"></div>
+    </div>
     <script>
-        // Предустановленный список расходов пользователя
-        let expenses = [
+        // Оригинальный стартовый массив данных
+        let participants = [
             { id: 1, name: 'Аренда квартиры', sum: 35000, priority: 1 },
-            { id: 2, name: 'Продукты и супермаркеты', sum: 20000, priority: 1 },
-            { id: 3, name: 'Связь, интернет и ЖКХ', sum: 7000, priority: 1 },
-            { id: 4, name: 'Транспорт и авто', sum: 10000, priority: 2 },
-            { id: 5, name: 'Развлечения и рестораны', sum: 15000, priority: 3 }
+            { id: 2, name: 'Продукты питания', sum: 20000, priority: 1 },
+            { id: 3, name: 'Коммунальные услуги', sum: 8000, priority: 1 },
+            { id: 4, name: 'Общественный транспорт', sum: 7000, priority: 2 },
+            { id: 5, name: 'Развлечения и кафе', sum: 15000, priority: 3 },
+            { id: 6, name: 'Случайные подписки', sum: 5000, priority: 3 }
         ];
 
-        // Функция плавного переключения экранов через CSS-трансформацию
-        function switchTab(index) {
-            const slider = document.getElementById('mainSlider');
-            if (slider) {
-                slider.style.transform = `translateX(-${index * 33.3333}%)`;
+        let currentScreenIndex = 0;
+
+        // Оригинальный алгоритм навигации по кликам в левую или правую треть экрана
+        function handleSideTap(event, screenIdx) {
+            // Предотвращаем срабатывание перехода при кликах на кнопки, инпуты и селекторы
+            const targetTag = event.target.tagName.toLowerCase();
+            if (targetTag === 'input' || targetTag === 'button' || targetTag === 'select' || event.target.closest('.btn-delete')) {
+                return;
             }
-            
-            const tabs = document.querySelectorAll('.tab-bar .tab-item');
-            tabs.forEach((tab, idx) => {
-                if (idx === index) {
-                    tab.classList.add('active');
-                } else {
-                    tab.classList.remove('active');
+
+            const screenWidth = window.innerWidth;
+            const tapX = event.clientX;
+
+            if (tapX < screenWidth * 0.33) {
+                // Тап влево — возвращаемся на предыдущий экран
+                if (currentScreenIndex > 0) {
+                    moveToScreen(currentScreenIndex - 1);
                 }
-            });
+            } else if (tapX > screenWidth * 0.66) {
+                // Тап вправо — переходим на следующий экран
+                if (currentScreenIndex < 2) {
+                    moveToScreen(currentScreenIndex + 1);
+                }
+            }
         }
-        // Главный аналитический алгоритм
+
+        // Программный сдвиг ленты слайдера и обновление системных точек iOS
+        function moveToScreen(index) {
+            currentScreenIndex = index;
+            const wrapper = document.getElementById('mainSlider');
+            if (wrapper) {
+                wrapper.style.transform = `translateX(-${index * 33.3333}%)`;
+            }
+
+            // Обновляем визуальное состояние индикаторов страниц ("точек")
+            for (let i = 0; i <= 2; i++) {
+                const dot = document.getElementById(`dot${i}`);
+                if (dot) {
+                    if (i === index) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                }
+            }
+        }
+        // Главный аналитический движок и расчет динамического градиента волн
         function calculateSplits() {
-            const incomeInput = document.getElementById('totalIncomeInput');
-            const income = Math.max(0, parseFloat(incomeInput.value) || 0);
+            const budgetInput = document.getElementById('totalBudgetInput');
+            const income = Math.max(0, parseFloat(budgetInput.value) || 0);
             
-            // Фильтруем и суммируем расходы по уровням приоритета
+            // Расчет расходов по трем категориям важности
             let costP1 = 0, costP2 = 0, costP3 = 0;
-            expenses.forEach(e => {
-                const val = Math.max(0, parseFloat(e.sum) || 0);
-                if (parseInt(e.priority) === 1) costP1 += val;
-                if (parseInt(e.priority) === 2) costP2 += val;
-                if (parseInt(e.priority) === 3) costP3 += val;
+            participants.forEach(p => {
+                const val = Math.max(0, parseFloat(p.sum) || 0);
+                if (p.priority === 1) costP1 += val;
+                if (p.priority === 2) costP2 += val;
+                if (p.priority === 3) costP3 += val;
             });
 
             const totalExpenses = costP1 + costP2 + costP3;
             const freeBudget = income - totalExpenses;
             
-            // Получаем ссылки на DOM-элементы управления интерфейсом
+            // Поиск DOM-элементов для управления
             const valueDisplay = document.getElementById('freeBudgetDisplay');
-            const labelDisplay = document.getElementById('budgetLabel');
             const waterLevel = document.getElementById('waterLevel');
             const circleBound = document.getElementById('circleBound');
-            const wf = document.getElementById('wf');
-            const wb = document.getElementById('wb');
             const assistantCard = document.getElementById('assistantCard');
-            const assistantTitle = document.getElementById('assistantTitle');
             const assistantText = document.getElementById('assistantText');
 
             valueDisplay.innerText = `${freeBudget.toLocaleString('ru-RU')} ₽`;
 
-            // СЦЕНАРИЙ 1: ЖЕСТКИЙ ДЕФИЦИТ (БЮДЖЕТ В МИНУСЕ)
+            // Вычисление процента остатка для плавного перетекания цвета
+            let pct = income > 0 ? (freeBudget / income) * 100 : 0;
+            if (freeBudget < 0) pct = 0; // Принудительный ноль при минусе
+
+            // Алгоритм плавного изменения цвета (от синего к красному через фиолетовый/оранжевый)
+            // При pct = 100 (денег максимум): HUE = 210 (iOS Blue)
+            // При pct = 0 (денег нет или минус): HUE = 0 (iOS Red)
+            let hue = Math.max(0, Math.min(210, Math.round(pct * 2.1)));
+            
+            // Динамическое применение стилей через CSS переменные напрямую в DOM
+            document.documentElement.style.setProperty('--wave-color-front', `hsl(${hue}, 100%, 50%)`);
+            document.documentElement.style.setProperty('--wave-color-back', `hsla(${hue}, 100%, 65%, 0.4)`);
+            document.documentElement.style.setProperty('--circle-bg-tint', `hsl(${hue}, 100%, 96%)`);
+
+            // Синхронизация текста баланса (плавное покраснение при приближении к нулю)
+            if (freeBudget < 0) {
+                valueDisplay.style.color = "var(--accent-red)";
+            } else {
+                valueDisplay.style.color = `hsl(${hue}, 100%, 40%)`;
+            }
+
+            // Мягкое управление уровнем волн в зависимости от сытости бюджета
+            const translateValue = Math.max(5, Math.min(95, 100 - pct));
+            waterLevel.style.transform = `translateY(${translateValue}%)`;
+
+            // УМНЫЙ ДОЛГОСРОЧНЫЙ АССИСТЕНТ (АВТОМАТИЧЕСКИЙ РАСЧЕТ И ОПТИМИЗАЦИЯ С КОМФОРТОМ ДЛЯ ЖИЗНИ)
             if (freeBudget < 0) {
                 const deficit = Math.abs(freeBudget);
-                labelDisplay.innerText = "Кассовый разрыв (Дефицит)";
-                valueDisplay.style.color = "var(--accent-red)";
-                
-                // Перекрашиваем океан в тревожный красный цвет
-                circleBound.style.boxShadow = "0 10px 25px rgba(239, 68, 68, 0.25), inset 0 0 0 2px rgba(239, 68, 68, 0.15)";
-                circleBound.style.background = "#fef2f2";
-                wf.style.background = "var(--accent-red)";
-                wb.style.background = "rgba(239, 68, 68, 0.35)";
-                waterLevel.style.transform = "translateY(85%)"; // Опускаем воду на дно кризиса
-
                 assistantCard.className = "assistant-card crisis";
-                assistantTitle.innerText = "⚠️ Ассистент: Бюджет трещит по швам!";
                 
-                if (income >= costP1) {
-                    const savedFromP3 = Math.min(costP3, deficit);
-                    let remDeficit = deficit - savedFromP3;
-                    let advice = `Вы ушли в минус на <b>${deficit.toLocaleString('ru-RU')} ₽</b>. <br><br><b>План оптимизации от ИИ:</b><br>1. Полностью заморозить расходы 🥉 уровня (досуг). Это освободит <b>${savedFromP3.toLocaleString('ru-RU')} ₽</b>.`;
+                // Мягкое урезание: оставляем человеку 40% от его досуга и 60% от важных трат для сохранения комфорта
+                const safeP3Savings = costP3 * 0.6; // Оптимизируем досуг на 60% (40% оставляем на жизнь)
+                const safeP2Savings = costP2 * 0.3; // Оптимизируем важные траты максимум на 30%
+                const monthlyPossibleSavings = safeP3Savings + safeP2Savings;
+
+                if (monthlyPossibleSavings > 0) {
+                    // Рассчитываем, на сколько месяцев растянется мягкое покрытие дефицита
+                    const monthsNeeded = Math.ceil(deficit / monthlyPossibleSavings);
                     
-                    if (remDeficit > 0 && costP2 > 0) {
-                        const pctCut = Math.min(100, Math.round((remDeficit / costP2) * 100));
-                        advice += `<br>2. Дефицит остается. Необходимо урезать расходы 🥈 уровня (транспорт, связь, подписки) на <b>${pctCut}%</b>.`;
-                    } else if (remDeficit > 0) {
-                        advice += `<br>2. Срочно сокращайте базовые траты 🥇 приоритета на <b>${remDeficit.toLocaleString('ru-RU')} ₽</b>!`;
-                    }
-                    assistantText.innerHTML = advice;
+                    assistantText.innerHTML = `⚠️ <b>Обнаружен дефицит:</b> ${deficit.toLocaleString('ru-RU')} ₽.<br>
+                    🤖 <b>План мягкой оптимизации на ${monthsNeeded} ${getMonthWord(monthsNeeded)}:</b><br>
+                    • Мы сохранили вам 40% бюджета на досуг и 70% на важные расходы, чтобы не убивать комфорт.<br>
+                    • За счет частичной экономии в этом месяце мы безболезненно сохраним <b>${monthlyPossibleSavings.toLocaleString('ru-RU')} ₽</b>.<br>
+                    • Рекомендуется временно сократить статьи типа «Прочее» на 60% (сэкономим ${safeP3Savings.toLocaleString('ru-RU')} ₽).`;
                 } else {
-                    assistantText.innerHTML = `Критическая ситуация! Ваш доход <b>${income.toLocaleString('ru-RU')} ₽</b> не покрывает даже базовое выживание (🥇 приоритет), которое требует <b>${costP1.toLocaleString('ru-RU')} ₽</b>. Немедленно ищите подработку или оптимизируйте аренду жилья.`;
+                    assistantText.innerHTML = `🚨 <b>Критический разрыв:</b> Доход не покрывает жесткие обязательства 🔴 приоритета. Срочно требуется пересмотр стоимости аренды жилья или поиск дополнительных источников заработка.`;
                 }
-
             } else {
-                // СЦЕНАРИЙ 2: БАЛАНС ИЛИ ПРОФИЦИТ
-                labelDisplay.innerText = "Свободный остаток";
-                valueDisplay.style.color = "var(--accent-blue)";
+                // Стратегия при положительном бюджете
+                assistantCard.className = "assistant-card";
+                const investTarget = Math.round(freeBudget * 0.4);
+                const funTarget = Math.round(freeBudget * 0.6);
                 
-                circleBound.style.boxShadow = "0 10px 25px rgba(0, 122, 255, 0.15), inset 0 0 0 2px rgba(0, 122, 255, 0.1)";
-                circleBound.style.background = "#e0f2fe";
-                wf.style.background = "var(--accent-blue)";
-                wb.style.background = "rgba(0, 199, 255, 0.4)";
-                
-                // Высота воды зависит от доли оставшихся свободных средств
-                const pct = income > 0 ? (freeBudget / income) * 100 : 0;
-                const translateValue = Math.max(0, Math.min(100, 100 - pct));
-                waterLevel.style.transform = `translateY(${translateValue}%)`;
-
-                // Если свободного кэша мало — карточка предупреждает, если много — хвалит
-                if (pct < 15) {
-                    assistantCard.className = "assistant-card warn";
-                    assistantTitle.innerText = "⚡ Ассистент: Опасная зона";
-                } else {
-                    assistantCard.className = "assistant-card";
-                    assistantTitle.innerText = "🧠 Ассистент: Отличный баланс!";
-                }
-                
-                // Пропорции идеального сплита (30% жилье, 20% еда, 15% инвестиции)
-                const rentTarget = Math.round(income * 0.3);
-                const foodTarget = Math.round(income * 0.2);
-                const investTarget = Math.round(freeBudget * 0.5);
-                const funTarget = Math.round(freeBudget * 0.5);
-
-                assistantText.innerHTML = `У вас на руках свободные <b>${freeBudget.toLocaleString('ru-RU')} ₽</b>. Направьте их в дело:<br>
-                • <b>Копилка / Инвестиции:</b> отложите <b>${investTarget.toLocaleString('ru-RU')} ₽</b> (50% излишка).<br>
-                • <b>Досуг и развитие:</b> выделите <b>${funTarget.toLocaleString('ru-RU')} ₽</b>.<br><br>
-                <i>Ориентир нормы для вашего дохода: Жилье до ${rentTarget.toLocaleString('ru-RU')} ₽, Еда до ${foodTarget.toLocaleString('ru-RU')} ₽.</i>`;
+                assistantText.innerHTML = `✨ <b>Баланс стабилен.</b> Свободные средства: ${freeBudget.toLocaleString('ru-RU')} ₽.<br>
+                💼 <b>Долгосрочный план распределения излишка:</b><br>
+                • Направьте <b>${investTarget.toLocaleString('ru-RU')} ₽</b> (40%) в подушку безопасности. За 4 месяца это сформирует резерв в размере ${(investTarget * 4).toLocaleString('ru-RU')} ₽.<br>
+                • Остальные <b>${funTarget.toLocaleString('ru-RU')} ₽</b> можно спокойно тратить на досуг и личные желания без вреда для кошелька.`;
             }
 
             renderSummary();
+        }
+
+        // Вспомогательная функция для склонения месяцев
+        function getMonthWord(number) {
+            const lastDigit = number % 10;
+            const lastTwoDigits = number % 100;
+            if (lastTwoDigits >= 11 && lastTwoDigits <= 19) return 'месяцев';
+            if (lastDigit === 1) return 'месяц';
+            if (lastDigit >= 2 && lastDigit <= 4) return 'месяца';
+            return 'месяцев';
         }
         // Отрисовка интерактивной таблицы на Экране 3
         function renderRows() {
@@ -320,24 +366,29 @@
             if (!container) return;
             container.innerHTML = '';
 
-            expenses.forEach(e => {
+            participants.forEach(p => {
                 const row = document.createElement('div');
                 row.className = 'list-item-row';
+                
+                // Определение текста для кнопки на основе приоритета (🔴 Срочно, 🟡 Важно, 🟢 Прочее)
+                let prClass = 'pr-2';
+                let prText = 'Важно';
+                if (p.priority === 1) { prClass = 'pr-1'; prText = '🔴 Срочно'; }
+                if (p.priority === 3) { prClass = 'pr-3'; prText = '🟢 Прочее'; }
+
                 row.innerHTML = `
-                    <div class="f-pr">
-                        <select onchange="updateExpense(${e.id}, 'priority', this.value)">
-                            <option value="1" ${parseInt(e.priority) === 1 ? 'selected' : ''}>🥇</option>
-                            <option value="2" ${parseInt(e.priority) === 2 ? 'selected' : ''}>🥈</option>
-                            <option value="3" ${parseInt(e.priority) === 3 ? 'selected' : ''}>🥉</option>
-                        </select>
-                    </div>
                     <div class="f-name">
-                        <input type="text" value="${e.name}" oninput="updateExpense(${e.id}, 'name', this.value)" placeholder="Статья">
+                        <input type="text" value="${p.name}" oninput="updateParticipant(${p.id}, 'name', this.value)" placeholder="Название статьи">
                     </div>
                     <div class="f-sum">
-                        <input type="number" value="${e.sum}" oninput="updateExpense(${e.id}, 'sum', this.value)" placeholder="Сумма" pattern="[0-9]*" inputmode="numeric">
+                        <input type="number" value="${p.sum}" oninput="updateParticipant(${p.id}, 'sum', this.value)" placeholder="Сумма" pattern="[0-9]*" inputmode="numeric">
                     </div>
-                    <button class="btn-delete" onclick="deleteExpense(${e.id})">✕</button>
+                    <div class="f-toggle">
+                        <button class="toggle-btn ${prClass}" onclick="cyclePriority(${p.id})">
+                            ${prText}
+                        </button>
+                    </div>
+                    <button class="btn-delete" onclick="deleteParticipant(${p.id})">✕</button>
                 `;
                 container.appendChild(row);
             });
@@ -349,18 +400,17 @@
             if (!container) return;
             container.innerHTML = '';
 
-            // Автоматическая сортировка: сначала 🥇, затем 🥈, в конце 🥉
-            const sorted = [...expenses].sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+            // Автоматическая сортировка расходов: сначала Срочные (1), затем Важные (2), в конце Прочие (3)
+            const sorted = [...participants].sort((a, b) => a.priority - b.priority);
 
-            sorted.forEach(e => {
-                const p = parseInt(e.priority);
-                const badge = p === 1 ? '🥇 Критический' : p === 2 ? '🥈 Важный' : '🥉 Опциональный';
+            sorted.forEach(p => {
+                const badge = p.priority === 1 ? '🔴 Срочно' : p.priority === 2 ? '🟡 Важно' : '🟢 Прочее';
                 const card = document.createElement('div');
                 card.className = 'plan-card';
                 card.innerHTML = `
                     <div class="row-main">
-                        <span>${e.name || 'Без названия'}</span>
-                        <span>${(Math.max(0, parseFloat(e.sum) || 0)).toLocaleString('ru-RU')} ₽</span>
+                        <span>${p.name || 'Без названия'}</span>
+                        <span>${(Math.max(0, parseFloat(p.sum) || 0)).toLocaleString('ru-RU')} ₽</span>
                     </div>
                     <div class="row-sub">${badge}</div>
                 `;
@@ -368,33 +418,39 @@
             });
         }
 
-        // Атомарное обновление полей без полной перерисовки DOM (сохраняет фокус)
-        function updateExpense(id, field, value) {
-            const e = expenses.find(x => x.id === id);
-            if (!e) return;
-            
+        // Циклическое переключение приоритета по тапу (1 -> 2 -> 3 -> 1)
+        function cyclePriority(id) {
+            const p = participants.find(x => x.id === id);
+            if (p) {
+                p.priority = p.priority === 3 ? 1 : p.priority + 1;
+                renderRows();
+                calculateSplits();
+            }
+        }
+
+        // Атомарное обновление полей без сброса фокуса клавиатуры
+        function updateParticipant(id, field, value) {
+            const p = participants.find(x => x.id === id);
+            if (!p) return;
             if (field === 'sum') {
-                e[field] = Math.max(0, parseFloat(value) || 0);
-            } else if (field === 'priority') {
-                e[field] = parseInt(value) || 2;
-                renderRows(); // Перерисовываем селекты при смене приоритета
+                p[field] = Math.max(0, parseFloat(value) || 0);
             } else {
-                e[field] = value;
+                p[field] = value;
             }
             calculateSplits();
         }
 
         // Добавление новой пустой строки расхода
         function addNewRow() {
-            const newId = expenses.length > 0 ? Math.max(...expenses.map(e => e.id)) + 1 : 1;
-            expenses.push({ id: newId, name: '', sum: 0, priority: 2 });
+            const newId = participants.length > 0 ? Math.max(...participants.map(p => p.id)) + 1 : 1;
+            participants.push({ id: newId, name: '', sum: 0, priority: 2 });
             renderRows();
             calculateSplits();
         }
 
         // Удаление строки расхода
-        function deleteExpense(id) {
-            expenses = expenses.filter(x => x.id !== id);
+        function deleteParticipant(id) {
+            participants = participants.filter(x => x.id !== id);
             renderRows();
             calculateSplits();
         }
