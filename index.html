@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>SplitUp Pro</title>
+    <!-- Поддержка PWA режима на смартфонах -->
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f4f6fa">
     <style>
         :root {
             --bg-color: #f4f6fa;
@@ -16,281 +18,392 @@
             --accent-blue: #007aff;
             --accent-amber: #f59e0b;
             --accent-red: #ef4444;
+            --accent-green: #10b981;
         }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color); color: var(--text-main);
             margin: 0; padding: 0; display: flex; flex-direction: column;
-            height: 100vh; box-sizing: border-box; user-select: none; overflow: hidden;
-            position: relative;
+            height: 100vh; user-select: none; overflow: hidden; position: relative;
         }
         .slider-container { width: 100%; height: 100%; overflow: hidden; position: relative; z-index: 10; }
-        .slider-wrapper { display: flex; width: 300%; height: 100%; transition: transform 0.32s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
-        .screen { width: 33.3333%; height: 100%; display: flex; flex-direction: column; align-items: center; padding: 16px 14px 85px 14px; overflow-y: auto; box-sizing: border-box; flex-shrink: 0; -webkit-overflow-scrolling: touch; }
-        h1 { font-size: 22px; margin: 5px 0 20px 0; font-weight: 800; letter-spacing: -0.5px; text-align: center; }
-        .circle-outer { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin-bottom: 15px; flex-shrink: 0; }
+        .slider-wrapper { display: flex; width: 300%; height: 100%; transition: transform 0.35s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
+        .screen { 
+            width: 33.3333%; height: 100%; display: flex; flex-direction: column; 
+            align-items: center; padding: calc(16px + env(safe-area-inset-top)) 14px calc(85px + env(safe-area-inset-bottom)) 14px; 
+            overflow-y: auto; box-sizing: border-box; flex-shrink: 0; -webkit-overflow-scrolling: touch; 
+        }
+        h1 { font-size: 22px; margin: 5px 0 15px 0; font-weight: 800; letter-spacing: -0.5px; text-align: center; }
         
+        /* КРУГ И ДИНАМИЧЕСКИЕ ВОЛНЫ */
+        .circle-outer { position: relative; width: 170px; height: 170px; display: flex; justify-content: center; align-items: center; margin-bottom: 12px; flex-shrink: 0; }
         .circle-container { 
-            position: relative; width: 165px; height: 165px; border-radius: 50%; 
+            position: relative; width: 145px; height: 145px; border-radius: 50%; 
             background: #e0f2fe; overflow: hidden;
-            box-shadow: 0 12px 30px rgba(0, 122, 255, 0.15), inset 0 0 0 2px rgba(0, 122, 255, 0.2); 
-            border: none; z-index: 5; display: flex; justify-content: center; align-items: center; 
-            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            box-shadow: 0 10px 25px rgba(0, 122, 255, 0.15), inset 0 0 0 2px rgba(0, 122, 255, 0.1); 
+            z-index: 5; transition: all 0.5s ease; 
         }
-        
-        /* ПЕРЕВЕРНУТЫЙ ОКЕАН: ЗАКРЕПЛЕН НАВЕРХУ, ЖИДКОСТЬ УХОДИТ СВЕРХУ ВНИЗ */
-        .liquid-water { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: transparent; transition: height 0.75s ease-out; z-index: 10; 
-        }
-        
-        /* УЛЬТРА-ПЛАВНЫЕ МЕДЛЕННЫЕ ВОЛНЫ С ИЗМЕНЕННЫМИ КООРДИНАТАМИ */
-        .wave-back, .wave-front { 
-            position: absolute; width: 340px; height: 340px; 
-            top: 75%; left: 50%; border-radius: 41%; 
-            transform-origin: 50% 47%;
-        }
-        
-        /* Задняя волна — замедлена до 18 секунд (очень ленивая) */
-        .wave-back { 
-            background: rgba(0, 199, 255, 0.4); 
-            animation: ChurnBack 18s linear infinite; 
-            z-index: 11; 
-        }
-        
-        /* Передняя основная волна — замедлена до 14 секунд */
-        .wave-front { 
-            background: #007aff; 
-            box-shadow: inset 0 -10px 20px rgba(255,255,255,0.2); 
-            animation: ChurnFront 14s linear infinite; 
-            z-index: 12; 
-        }
+        .liquid-water { position: absolute; left: 0; width: 100%; height: 100%; background: transparent; z-index: 10; bottom: 0; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+        .wave-back, .wave-front { position: absolute; width: 300px; height: 300px; bottom: -20px; left: 50%; border-radius: 42%; transform-origin: 50% 48%; transition: background 0.5s ease; }
+        .wave-back { background: rgba(0, 199, 255, 0.4); animation: ChurnBack 16s linear infinite; z-index: 11; }
+        .wave-front { background: var(--accent-blue); box-shadow: inset 0 -10px 20px rgba(255,255,255,0.15); animation: ChurnFront 12s linear infinite; z-index: 12; }
         
         @keyframes ChurnBack { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         @keyframes ChurnFront { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(-360deg); } }
 
-        .free-money-box { text-align: center; margin: 5px 0 20px 0; flex-shrink: 0; }
-        .free-money-box .value { font-size: 28px; font-weight: 850; color: var(--accent-blue); letter-spacing: -0.5px; }
-        .free-money-box .label { font-size: 12px; color: var(--text-gray); font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+        /* ИНФОРМАЦИОННЫЕ ПАНЕЛИ */
+        .free-money-box { text-align: center; margin: 0 0 15px 0; flex-shrink: 0; }
+        .free-money-box .value { font-size: 26px; font-weight: 850; color: var(--accent-blue); letter-spacing: -0.5px; transition: color 0.3s; }
+        .free-money-box .label { font-size: 11px; color: var(--text-gray); font-weight: 700; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* КАРТОЧКА АССИСТЕНТА */
+        .assistant-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 16px; padding: 14px; width: 100%; max-width: 380px; box-sizing: border-box; margin-bottom: 15px; font-size: 13px; line-height: 1.45; transition: all 0.3s ease; }
+        .assistant-card.warn { background: #fffbeb; border-color: #fde68a; }
+        .assistant-card.crisis { background: #fef2f2; border-color: #fca5a5; }
+        .assistant-title { font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        /* ПЛАН И ТАБЛИЦА РАСХОДОВ */
         .plan-container { width: 100%; max-width: 380px; display: flex; flex-direction: column; }
-        .zone-header { font-size: 13px; color: var(--text-gray); font-weight: 700; text-align: center; margin: 15px 0 10px 0; text-transform: uppercase; }
-        .zone-list { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 10px; }
+        .zone-header { font-size: 11px; color: var(--text-gray); font-weight: 700; text-align: center; margin: 5px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .zone-list { display: flex; flex-direction: column; gap: 8px; width: 100%; }
         .plan-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; box-shadow: 0 2px 6px rgba(0,0,0,0.01); }
-        .plan-card.priority { border: 1px solid rgba(239,68,68,0.22); }
         .plan-card .row-main { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; }
-        .plan-card .row-sub { font-size: 12px; color: var(--text-gray); margin-top: 3px; }
+        .plan-card .row-sub { font-size: 11px; color: var(--text-gray); margin-top: 3px; font-weight: 600; }
 
-        .form-box { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px; box-sizing: border-box; margin-bottom: 12px; position: relative; z-index: 20; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
-        .form-box h3 { margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: var(--text-main); font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+        /* ФОРМА И СЕТКА ТАБЛИЦЫ */
+        .form-box { width: 100%; max-width: 380px; background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 12px; box-sizing: border-box; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
+        .form-box h3 { margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; color: var(--text-main); font-weight: 800; letter-spacing: 0.3px; }
         
-        .table-head { display: flex; gap: 8px; margin-bottom: 5px; padding: 0 4px; font-size: 10px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; box-sizing: border-box; width: 100%; }
-        .list-item-row { display: flex; gap: 8px; margin-bottom: 6px; width: 100%; align-items: center; box-sizing: border-box; }
+        /* Защита от сжатия на iPhone SE */
+        .table-head { display: flex; gap: 6px; margin-bottom: 6px; padding: 0 4px; font-size: 10px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; box-sizing: border-box; }
+        .list-item-row { display: flex; gap: 6px; margin-bottom: 6px; align-items: center; box-sizing: border-box; }
         
-        .th-name { flex: 2; text-align: center; min-width: 0; }
-        .list-item-row .f-name { flex: 2; min-width: 0; text-align: left; }
-        
-        .th-sum, .list-item-row .f-sum { width: 85px; flex-shrink: 1; min-width: 0; text-align: center; }
-        .th-time, .list-item-row .f-time { width: 45px; text-align: center; flex-shrink: 0; }
-        .th-pct, .list-item-row .f-pct { width: 50px; text-align: center; flex-shrink: 0; }
-        .th-toggle, .list-item-row .f-toggle, .toggle-btn { width: 55px; text-align: center; flex-shrink: 0; }
-        .th-space, .btn-delete { width: 24px; text-align: center; flex-shrink: 0; }
+        .th-pr, .f-pr { width: 42px; text-align: center; flex-shrink: 0; }
+        .th-name, .f-name { flex: 2; min-width: 0; }
+        .th-sum, .f-sum { width: 85px; flex-shrink: 0; text-align: center; }
+        .th-del, .btn-delete { width: 24px; text-align: center; flex-shrink: 0; }
 
-        .input-inline { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; justify-content: space-between; }
+        .input-inline { display: flex; gap: 10px; margin-bottom: 4px; align-items: center; justify-content: space-between; }
         .input-inline label { font-size: 13px; font-weight: 600; }
-        .input-inline input { width: 55px; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 6px; padding: 6px; text-align: center; font-size: 13px; outline: none; font-weight: 600; }
-        .input-inline input:disabled { opacity: 0.35; background: #e2e8f0; }
+        .input-inline input { width: 100px; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 6px; padding: 6px; text-align: center; font-size: 13px; outline: none; font-weight: 700; }
 
-        .list-item-row input { background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 8px; padding: 9px; color: var(--text-main); font-size: 13px; outline: none; box-sizing: border-box; font-weight: 500; height: 36px; }
-        .list-item-row input:focus { border-color: var(--accent-blue); background: #ffffff; }
-        .list-item-row input:disabled { background: #e2e8f0 !important; font-weight: 700; opacity: 0.85; text-align: left; padding-left: 12px; }
+        .list-item-row input, .list-item-row select { width: 100%; background: var(--bg-color); border: 1px solid var(--card-border); border-radius: 8px; padding: 8px; color: var(--text-main); font-size: 13px; outline: none; box-sizing: border-box; font-weight: 600; height: 36px; -webkit-appearance: none; }
+        .list-item-row select { text-align-last: center; font-size: 15px; padding: 6px 2px; cursor: pointer; border-color: var(--card-border); }
+        .list-item-row input:focus, .list-item-row select:focus { border-color: var(--accent-blue); background: #ffffff; }
 
-        .toggle-btn { width: 55px; height: 34px; border-radius: 8px; border: 1px solid var(--card-border); background: var(--bg-color); color: var(--text-gray); font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; transition: all 0.2s ease; box-sizing: border-box; }
-        .toggle-btn.active-sal { background: var(--accent-blue) !important; color: #fff !important; border-color: var(--accent-blue) !important; }
-        .toggle-btn.active-adv { background: var(--accent-amber) !important; color: #fff !important; border-color: var(--accent-amber) !important; }
+        .btn-delete { background: none; border: none; color: var(--accent-red); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; height: 36px; }
+        .btn-add { width: 100%; background: var(--bg-color); border: 1px dashed rgba(0,122,255,0.3); padding: 10px; border-radius: 10px; font-weight: 700; color: var(--accent-blue); cursor: pointer; font-size: 13px; outline: none; transition: background 0.2s; }
+        .btn-add:active { background: #e0f2fe; }
 
-        .btn-delete { background: none; border: none; color: var(--text-gray); font-size: 15px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; position: relative; z-index: 30; }
-        .btn-action { width: 100%; max-width: 380px; padding: 12px; border-radius: 12px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; position: relative; z-index: 30; }
-        .btn-save { background: var(--accent-blue); color: #fff; }
-        .btn-add { background: none; border: none; color: var(--accent-blue); font-weight: 700; font-size: 12px; cursor: pointer; }
-        .page-dots { position: fixed; bottom: 18px; left: 0; width: 100%; height: 10px; display: flex; justify-content: center; gap: 8px; z-index: 100; pointer-events: none; }
-        .dot { width: 7px; height: 7px; border-radius: 50%; background: #cbd5e1; transition: background 0.25s, transform 0.25s; }
-        .dot.active { background: var(--accent-blue); transform: scale(1.2); }
+        /* ТАБ-ВЕРСТКА НИЖНЕЙ ПАНЕЛИ */
+        .tab-bar { position: absolute; bottom: 0; left: 0; width: 100%; height: calc(60px + env(safe-area-inset-bottom)); background: rgba(255,255,255,0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; z-index: 100; padding-bottom: env(safe-area-inset-bottom); }
+        .tab-item { display: flex; flex-direction: column; align-items: center; color: var(--text-gray); font-size: 10px; font-weight: 700; cursor: pointer; flex: 1; text-transform: uppercase; letter-spacing: 0.3px; padding-top: 6px; }
+        .tab-item.active { color: var(--accent-blue); }
+        .tab-item svg { width: 20px; height: 20px; margin-bottom: 2px; fill: currentColor; }
     </style>
 </head>
 <body>
-    <div class="slider-container" onclick="handleBackgroundClick(event)">
-        <div class="slider-wrapper" id="sliderWrapper">
-            <!-- ЭКРАН 1 -->
+
+    <div class="slider-container">
+        <div class="slider-wrapper" id="mainSlider">
+            
+            <!-- ЭКРАН 1: ГЛАВНЫЙ С ВОЛНАМИ И СОВЕТНИКОМ -->
             <div class="screen">
-                <h1>SplitUp</h1>
+                <h1>Финансовый Сектор</h1>
                 <div class="circle-outer">
-                    <div class="circle-container" id="coreCircle">
-                        <div class="liquid-water" id="waterLayer">
-                            <div class="wave-back"></div>
-                            <div class="wave-front"></div>
+                    <div class="circle-container" id="circleBound">
+                        <div class="liquid-water" id="waterLevel">
+                            <div class="wave-back" id="wb"></div>
+                            <div class="wave-front" id="wf"></div>
                         </div>
                     </div>
                 </div>
+                
                 <div class="free-money-box">
-                    <div class="value" id="freeMoneyText">0 ₽</div>
-                    <div class="label">Всего свободных денег</div>
+                    <div class="value" id="freeBudgetDisplay">0 ₽</div>
+                    <div class="label" id="budgetLabel">Свободный остаток</div>
                 </div>
-                <div class="plan-container" onclick="event.stopPropagation()"><div id="calendarPlanList"></div></div>
+
+                <!-- Блок ИИ-помощника -->
+                <div class="assistant-card" id="assistantCard">
+                    <div class="assistant-title" id="assistantTitle">🧠 Финансовый Ассистент</div>
+                    <div id="assistantText">Синхронизация данных...</div>
+                </div>
+
+                <div class="plan-container">
+                    <div class="zone-header">Оптимальный план расходов</div>
+                    <div class="zone-list" id="summaryContainer"></div>
+                </div>
             </div>
-            <!-- ЭКРАН 2 -->
+
+            <!-- ЭКРАН 2: ВВОД ДОХОДОВ -->
             <div class="screen">
-                <h1>Потоки финансов</h1>
-                <div class="form-box" onclick="event.stopPropagation()">
-                    <h3>Даты выплат</h3>
-                    <div class="input-inline"><label>Число Зарплаты:</label><input type="number" id="dateSalary" min="1" max="31"></div>
-                    <div class="input-inline"><label>Число Аванса:</label><input type="number" id="dateAdvance" min="1" max="31"></div>
-                </div>
-                <div class="form-box" onclick="event.stopPropagation()">
-                    <h3>Доходы <button class="btn-add" onclick="addItem('incomes')">+ Добавить</button></h3>
-                    <div class="table-head"><span class="th-name">Откуда деньги?</span><span class="th-sum">Сумма</span><span class="th-space"></span></div>
-                    <div id="incomesContainer"></div>
-                </div>
-                <div class="form-box" onclick="event.stopPropagation()">
-                    <h3>Расходы и Долги <button class="btn-add" onclick="addItem('expenses')">+ Добавить</button></h3>
-                    <div class="table-head"><span class="th-name">Название долга</span><span class="th-sum">Сумма</span><span class="th-time">Срок</span><span class="th-toggle">Привязка</span><span class="th-space"></span></div>
-                    <div id="expensesContainer"></div>
-                </div>
-                <button class="btn-action btn-save" onclick="event.stopPropagation(); saveAllData()">Сохранить расчет</button>
-            </div>
-            <!-- ЭКРАН 3 -->
-            <div class="screen">
-                <h1>Умная копилка</h1>
-                <div class="form-box" onclick="event.stopPropagation()">
-                    <h3>Параметры сейфа</h3>
-                    <div class="input-inline"><label>Фиксированный % от остатка:</label><input type="number" id="piggyGlobalPercent" min="0" max="100"></div>
-                </div>
-                <div class="form-box" onclick="event.stopPropagation()">
-                    <h3>Цели накоплений <button class="btn-add" onclick="addItem('targets')">+ Создать цель</button></h3>
-                    <div class="table-head">
-                        <span class="th-name">На что копим?</span>
-                        <span class="th-pct">Процент</span>
-                        <span class="th-toggle">Привязка</span>
-                        <span class="th-space"></span>
+                <h1>Параметры Дохода</h1>
+                <div class="form-box">
+                    <h3>Общий доход</h3>
+                    <div class="input-inline">
+                        <label>Ваш ежемесячный доход:</label>
+                        <input type="number" id="totalIncomeInput" value="100000" oninput="calculateSplits()" pattern="[0-9]*" inputmode="numeric">
                     </div>
-                    <div id="targetsContainer"></div>
                 </div>
-                <button class="btn-action btn-save" onclick="event.stopPropagation(); saveAllData()">Сохранить копилку</button>
+                <div class="form-box">
+                    <h3>О приложении</h3>
+                    <div style="font-size: 13px; color: var(--text-gray); line-height: 1.45; font-weight: 500;">
+                        SplitUp Pro автоматически распределяет средства по приоритетам и категориям. Укажите доходы и расходы для точного анализа.
+                    </div>
+                </div>
             </div>
+
+            <!-- ЭКРАН 3: ТАБЛИЦА С ПРИОРИТЕТАМИ -->
+            <div class="screen">
+                <h1>Лист Расходов</h1>
+                <div class="form-box" style="max-width: 100%;">
+                    <h3>Редактор затрат</h3>
+                    <div class="table-head">
+                        <div class="th-pr">Приор.</div>
+                        <div class="th-name">Название статьи</div>
+                        <div class="th-sum">Сумма (₽)</div>
+                        <div class="th-del"></div>
+                    </div>
+                    <div id="rowsContainer"></div>
+                    <button class="btn-add" onclick="addNewRow()">+ Добавить расход</button>
+                </div>
+            </div>
+
         </div>
     </div>
-    <div class="page-dots"><div id="dot-0" class="dot active"></div><div id="dot-1" class="dot"></div><div id="dot-2" class="dot"></div></div>
+    <!-- НИЖНИЙ НАВИГАЦИОННЫЙ ТАБ-БАР -->
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchTab(0)">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Главная
+        </div>
+        <div class="tab-item" onclick="switchTab(1)">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Доход
+        </div>
+        <div class="tab-item" onclick="switchTab(2)">
+            <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+            Расходы
+        </div>
+    </div>
+
     <script>
-        // Обновили базу до splitup_v19_db для полной очистки старой памяти Safari у всех людей
-        let appData = JSON.parse(localStorage.getItem('splitup_v19_db')) || {
-            salaryDate: 15, advanceDate: 30, piggyPercent: 15,
-            incomes: [{ name: "Зарплата", sum: 70000, fixed: true }, { name: "Аванс", sum: 30000, fixed: true }],
-            expenses: [{ name: "Кредит", sum: 40000, months: 2, source: "sal" }, { name: "ЖКХ", sum: 5000, months: 1, source: "adv" }],
-            targets: [] 
-        };
-        let currentIdx = 0; const wrapper = document.getElementById('sliderWrapper');
+        // Предустановленный список расходов пользователя
+        let expenses = [
+            { id: 1, name: 'Аренда квартиры', sum: 35000, priority: 1 },
+            { id: 2, name: 'Продукты и супермаркеты', sum: 20000, priority: 1 },
+            { id: 3, name: 'Связь, интернет и ЖКХ', sum: 7000, priority: 1 },
+            { id: 4, name: 'Транспорт и авто', sum: 10000, priority: 2 },
+            { id: 5, name: 'Развлечения и рестораны', sum: 15000, priority: 3 }
+        ];
 
-        function handleBackgroundClick(event) { if (document.activeElement.tagName === 'INPUT') return; if (event.clientX > window.innerWidth / 2) movePage(1); else movePage(-1); }
-        function movePage(dir) { let next = currentIdx + dir; if (next >= 0 && next <= 2) setPage(next); }
-        function setPage(idx) { currentIdx = idx; wrapper.style.transform = 'translateX(-' + (idx * 33.3333) + '%)'; document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx)); if(idx !== 0) renderForms(); }
-        
-        function toggleSource(type, index) {
-            let current = appData[type][index].source || 'sal';
-            appData[type][index].source = (current === 'sal') ? 'adv' : 'sal';
-            renderForms();
+        // Функция плавного переключения экранов через CSS-трансформацию
+        function switchTab(index) {
+            const slider = document.getElementById('mainSlider');
+            if (slider) {
+                slider.style.transform = `translateX(-${index * 33.3333}%)`;
+            }
+            
+            const tabs = document.querySelectorAll('.tab-bar .tab-item');
+            tabs.forEach((tab, idx) => {
+                if (idx === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
         }
-
-        function renderForms() {
-            document.getElementById('dateSalary').value = appData.salaryDate; document.getElementById('dateAdvance').value = appData.advanceDate;
-            const pInput = document.getElementById('piggyGlobalPercent'); pInput.value = appData.piggyPercent; pInput.disabled = appData.targets.length > 0;
+        // Главный аналитический алгоритм
+        function calculateSplits() {
+            const incomeInput = document.getElementById('totalIncomeInput');
+            const income = Math.max(0, parseFloat(incomeInput.value) || 0);
             
-            let incHTML = '';
-            for(let i=0; i<appData.incomes.length; i++) { let item = appData.incomes[i]; incHTML += '<div class="list-item-row"><input type="text" class="f-name" value="' + item.name + '" ' + (item.fixed ? 'disabled' : 'oninput="appData.incomes['+i+'].name=this.value"') + '><input type="number" class="f-sum" value="' + item.sum + '" oninput="appData.incomes['+i+'].sum=Number(this.value)">' + (item.fixed ? '<span style="width:24px;flex-shrink:0;"></span>' : '<button class="btn-delete" onclick="deleteItem(\'incomes\','+i+')">✕</button>') + '</div>'; }
-            document.getElementById('incomesContainer').innerHTML = incHTML;
+            // Фильтруем и суммируем расходы по уровням приоритета
+            let costP1 = 0, costP2 = 0, costP3 = 0;
+            expenses.forEach(e => {
+                const val = Math.max(0, parseFloat(e.sum) || 0);
+                if (parseInt(e.priority) === 1) costP1 += val;
+                if (parseInt(e.priority) === 2) costP2 += val;
+                if (parseInt(e.priority) === 3) costP3 += val;
+            });
+
+            const totalExpenses = costP1 + costP2 + costP3;
+            const freeBudget = income - totalExpenses;
             
-            let expHTML = '';
-            for(let i=0; i<appData.expenses.length; i++) { 
-                let item = appData.expenses[i]; let src = item.source || 'sal';
-                let btnClass = (src === 'sal') ? 'toggle-btn active-sal' : 'toggle-btn active-adv';
-                let btnText = (src === 'sal') ? 'ЗП' : 'АВН';
-                expHTML += '<div class="list-item-row" style="' + (i===0 ? 'border-left:3px solid var(--accent-red);padding-left:4px;' : '') + '"><input type="text" class="f-name" value="' + item.name + '" oninput="appData.expenses['+i+'].name=this.value"><input type="number" class="f-sum" value="' + item.sum + '" oninput="appData.expenses['+i+'].sum=Number(this.value)"><input type="number" class="f-time" value="' + (item.months||1) + '" oninput="appData.expenses['+i+'].months=Number(this.value)"><button class="' + btnClass + '" onclick="toggleSource(\'expenses\','+i+')">' + btnText + '</button><button class="btn-delete" onclick="deleteItem(\'expenses\','+i+')">✕</button></div>'; 
-            }
-            document.getElementById('expensesContainer').innerHTML = expHTML;
-            
-            let trgHTML = '';
-            for(let i=0; i<appData.targets.length; i++) { 
-                let item = appData.targets[i]; let src = item.source || 'sal';
-                let btnClass = (src === 'sal') ? 'toggle-btn active-sal' : 'toggle-btn active-adv';
-                let btnText = (src === 'sal') ? 'ЗП' : 'АВН';
-                trgHTML += '<div class="list-item-row"><input type="text" class="f-name" value="' + item.name + '" oninput="appData.targets['+i+'].name=this.value"><input type="number" class="f-pct" value="' + item.pct + '" oninput="appData.targets['+i+'].pct=Number(this.value)"><button class="' + btnClass + '" onclick="toggleSource(\'targets\','+i+')">' + btnText + '</button><button class="btn-delete" onclick="deleteItem(\'targets\','+i+')">✕</button></div>'; 
-            }
-            document.getElementById('targetsContainer').innerHTML = trgHTML;
-        }
-        function addItem(type) { if (type === 'incomes') appData.incomes.push({ name: '', sum: 0 }); else if (type === 'expenses') appData.expenses.push({ name: '', sum: 0, months: 1, source: 'sal' }); else appData.targets.push({ name: '', pct: 5, source: 'sal' }); renderForms(); }
-        function deleteItem(type, i) { appData[type].splice(i, 1); renderForms(); }
-        function saveAllData() { appData.salaryDate = Number(document.getElementById('dateSalary').value) || 15; appData.advanceDate = Number(document.getElementById('dateAdvance').value) || 30; if (appData.targets.length === 0) appData.piggyPercent = Number(document.getElementById('piggyGlobalPercent').value) || 15; localStorage.setItem('splitup_v19_db', JSON.stringify(appData)); calculateBudget(); setPage(0); }
-        function calculateBudget() {
-            let salCash = appData.incomes.find(i => i.name === "Зарплата")?.sum || 0;
-            let advCash = appData.incomes.find(i => i.name === "Аванс")?.sum || 0;
-            let extraIncomes = appData.incomes.filter(i => !i.fixed).reduce((acc, c) => acc + (c.sum || 0), 0);
-            
-            let salTotalIncome = salCash + extraIncomes; let advTotalIncome = advCash;
-            let salListHTML = ''; let advListHTML = ''; let salExpensesSum = 0; let advExpensesSum = 0;
-            let totalExpenseThisMonth = 0;
+            // Получаем ссылки на DOM-элементы управления интерфейсом
+            const valueDisplay = document.getElementById('freeBudgetDisplay');
+            const labelDisplay = document.getElementById('budgetLabel');
+            const waterLevel = document.getElementById('waterLevel');
+            const circleBound = document.getElementById('circleBound');
+            const wf = document.getElementById('wf');
+            const wb = document.getElementById('wb');
+            const assistantCard = document.getElementById('assistantCard');
+            const assistantTitle = document.getElementById('assistantTitle');
+            const assistantText = document.getElementById('assistantText');
 
-            for(let i=0; i<appData.expenses.length; i++) {
-                let item = appData.expenses[i]; let m = Number(item.months) || 1; if (m < 1) m = 1;
-                let costThisMonth = (item.sum || 0) / m; totalExpenseThisMonth += costThisMonth;
-                let isPrio = (i === 0);
-                let cardHTML = '<div class="plan-card ' + (isPrio ? 'priority' : '') + '"><div class="row-main"><span style="' + (isPrio ? 'color:var(--accent-red)' : '') + '">' + (i+1) + '. ' + (item.name || 'Долг') + '</span><span>' + Math.round(costThisMonth).toLocaleString() + ' ₽</span></div><div class="row-sub">Срок рассрочки: ' + m + ' мес.</div></div>';
+            valueDisplay.innerText = `${freeBudget.toLocaleString('ru-RU')} ₽`;
 
-                if (item.source === 'adv') { advExpensesSum += costThisMonth; advListHTML += cardHTML; } 
-                else { salExpensesSum += costThisMonth; salListHTML += cardHTML; }
-            }
-
-            let currentPiggyPercent = appData.piggyPercent; if (appData.targets.length > 0) currentPiggyPercent = appData.targets.reduce((acc, t) => acc + (t.pct || 0), 0);
-            let salRemainder = salTotalIncome - salExpensesSum; if (salRemainder < 0) salRemainder = 0;
-            let textRemainder = advTotalIncome - advExpensesSum; if (textRemainder < 0) textRemainder = 0;
-
-            let salPiggySum = 0; let advPiggySum = 0;
-            let totalRemainder = salRemainder + textRemainder;
-            let globalPiggySum = (totalRemainder * currentPiggyPercent) / 100;
-
-            for(let i=0; i<appData.targets.length; i++) {
-                let t = appData.targets[i]; let part = Math.round((globalPiggySum * (t.pct || 0)) / (currentPiggyPercent || 1));
-                let targetCardHTML = '<div class="plan-card" style="border-left: 4px solid var(--accent-amber)"><div class="row-main"><span style="color:var(--accent-amber)">🔒 Сейф: ' + (t.name || 'Цель') + '</span><span style="color:var(--accent-amber)">' + part.toLocaleString() + ' ₽</span></div><div class="row-sub">Накопления по цели (' + t.pct + '%)</div></div>';
-
-                if (t.source === 'adv') { advPiggySum += part; advListHTML += targetCardHTML; } 
-                else { salPiggySum += part; salListHTML += targetCardHTML; }
-            }
-
-            let salFreeMoney = salRemainder - salPiggySum; if (salFreeMoney < 0) salFreeMoney = 0;
-            let advFreeMoney = textRemainder - advPiggySum; if (advFreeMoney < 0) advFreeMoney = 0;
-            let totalFreeMoney = salFreeMoney + advFreeMoney;
-
-            document.getElementById('freeMoneyText').innerText = Math.round(totalFreeMoney).toLocaleString('ru-RU') + ' ₽';
-
-            let core = document.getElementById('coreCircle'); let waterLayer = document.getElementById('waterLayer');
-            let totalGlobalIncome = salTotalIncome + advTotalIncome;
-            
-            if (totalGlobalIncome > 0) {
-                let lifeRatio = totalFreeMoney / totalGlobalIncome;
-                let scale = 0.65 + (lifeRatio * 0.35); if(core) core.style.transform = 'scale(' + scale + ')';
+            // СЦЕНАРИЙ 1: ЖЕСТКИЙ ДЕФИЦИТ (БЮДЖЕТ В МИНУСЕ)
+            if (freeBudget < 0) {
+                const deficit = Math.abs(freeBudget);
+                labelDisplay.innerText = "Кассовый разрыв (Дефицит)";
+                valueDisplay.style.color = "var(--accent-red)";
                 
-                // ИСПРАВЛЕННАЯ МАТЕМАТИКА: Инвертируем заполняемость, чтобы она опускалась СВЕРХУ ВНИЗ
-                // Полный бюджет (100% денег) = 100% высоты синевы. Денег 0% = высота синевы падает на дно
-                let hPct = lifeRatio * 100; 
-                if (totalFreeMoney === 0 && (salExpensesSum + advExpensesSum) > 0) hPct = 5;
-                if(waterLayer) waterLayer.style.height = hPct + '%';
-            } else { 
-                if(core) core.style.transform = 'scale(0.65)'; 
-                if(waterLayer) waterLayer.style.height = '0%'; 
+                // Перекрашиваем океан в тревожный красный цвет
+                circleBound.style.boxShadow = "0 10px 25px rgba(239, 68, 68, 0.25), inset 0 0 0 2px rgba(239, 68, 68, 0.15)";
+                circleBound.style.background = "#fef2f2";
+                wf.style.background = "var(--accent-red)";
+                wb.style.background = "rgba(239, 68, 68, 0.35)";
+                waterLevel.style.transform = "translateY(85%)"; // Опускаем воду на дно кризиса
+
+                assistantCard.className = "assistant-card crisis";
+                assistantTitle.innerText = "⚠️ Ассистент: Бюджет трещит по швам!";
+                
+                if (income >= costP1) {
+                    const savedFromP3 = Math.min(costP3, deficit);
+                    let remDeficit = deficit - savedFromP3;
+                    let advice = `Вы ушли в минус на <b>${deficit.toLocaleString('ru-RU')} ₽</b>. <br><br><b>План оптимизации от ИИ:</b><br>1. Полностью заморозить расходы 🥉 уровня (досуг). Это освободит <b>${savedFromP3.toLocaleString('ru-RU')} ₽</b>.`;
+                    
+                    if (remDeficit > 0 && costP2 > 0) {
+                        const pctCut = Math.min(100, Math.round((remDeficit / costP2) * 100));
+                        advice += `<br>2. Дефицит остается. Необходимо урезать расходы 🥈 уровня (транспорт, связь, подписки) на <b>${pctCut}%</b>.`;
+                    } else if (remDeficit > 0) {
+                        advice += `<br>2. Срочно сокращайте базовые траты 🥇 приоритета на <b>${remDeficit.toLocaleString('ru-RU')} ₽</b>!`;
+                    }
+                    assistantText.innerHTML = advice;
+                } else {
+                    assistantText.innerHTML = `Критическая ситуация! Ваш доход <b>${income.toLocaleString('ru-RU')} ₽</b> не покрывает даже базовое выживание (🥇 приоритет), которое требует <b>${costP1.toLocaleString('ru-RU')} ₽</b>. Немедленно ищите подработку или оптимизируйте аренду жилья.`;
+                }
+
+            } else {
+                // СЦЕНАРИЙ 2: БАЛАНС ИЛИ ПРОФИЦИТ
+                labelDisplay.innerText = "Свободный остаток";
+                valueDisplay.style.color = "var(--accent-blue)";
+                
+                circleBound.style.boxShadow = "0 10px 25px rgba(0, 122, 255, 0.15), inset 0 0 0 2px rgba(0, 122, 255, 0.1)";
+                circleBound.style.background = "#e0f2fe";
+                wf.style.background = "var(--accent-blue)";
+                wb.style.background = "rgba(0, 199, 255, 0.4)";
+                
+                // Высота воды зависит от доли оставшихся свободных средств
+                const pct = income > 0 ? (freeBudget / income) * 100 : 0;
+                const translateValue = Math.max(0, Math.min(100, 100 - pct));
+                waterLevel.style.transform = `translateY(${translateValue}%)`;
+
+                // Если свободного кэша мало — карточка предупреждает, если много — хвалит
+                if (pct < 15) {
+                    assistantCard.className = "assistant-card warn";
+                    assistantTitle.innerText = "⚡ Ассистент: Опасная зона";
+                } else {
+                    assistantCard.className = "assistant-card";
+                    assistantTitle.innerText = "🧠 Ассистент: Отличный баланс!";
+                }
+                
+                // Пропорции идеального сплита (30% жилье, 20% еда, 15% инвестиции)
+                const rentTarget = Math.round(income * 0.3);
+                const foodTarget = Math.round(income * 0.2);
+                const investTarget = Math.round(freeBudget * 0.5);
+                const funTarget = Math.round(freeBudget * 0.5);
+
+                assistantText.innerHTML = `У вас на руках свободные <b>${freeBudget.toLocaleString('ru-RU')} ₽</b>. Направьте их в дело:<br>
+                • <b>Копилка / Инвестиции:</b> отложите <b>${investTarget.toLocaleString('ru-RU')} ₽</b> (50% излишка).<br>
+                • <b>Досуг и развитие:</b> выделите <b>${funTarget.toLocaleString('ru-RU')} ₽</b>.<br><br>
+                <i>Ориентир нормы для вашего дохода: Жилье до ${rentTarget.toLocaleString('ru-RU')} ₽, Еда до ${foodTarget.toLocaleString('ru-RU')} ₽.</i>`;
             }
 
-            let planList = document.getElementById('calendarPlanList'); planList.innerHTML = '';
-            planList.innerHTML += '<div class="zone-header">Внести ' + appData.salaryDate + ' числа</div><div class="zone-list">' + (salListHTML || '<div class="plan-card"><div class="row-sub">Трат из зарплаты нет</div></div>') + '</div>';
-            planList.innerHTML += '<div class="zone-header">Внести ' + appData.advanceDate + ' числа</div><div class="zone-list">' + (advListHTML || '<div class="plan-card"><div class="row-sub">Трат из аванса нет</div></div>') + '</div>';
+            renderSummary();
         }
-        calculateBudget();
+        // Отрисовка интерактивной таблицы на Экране 3
+        function renderRows() {
+            const container = document.getElementById('rowsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            expenses.forEach(e => {
+                const row = document.createElement('div');
+                row.className = 'list-item-row';
+                row.innerHTML = `
+                    <div class="f-pr">
+                        <select onchange="updateExpense(${e.id}, 'priority', this.value)">
+                            <option value="1" ${parseInt(e.priority) === 1 ? 'selected' : ''}>🥇</option>
+                            <option value="2" ${parseInt(e.priority) === 2 ? 'selected' : ''}>🥈</option>
+                            <option value="3" ${parseInt(e.priority) === 3 ? 'selected' : ''}>🥉</option>
+                        </select>
+                    </div>
+                    <div class="f-name">
+                        <input type="text" value="${e.name}" oninput="updateExpense(${e.id}, 'name', this.value)" placeholder="Статья">
+                    </div>
+                    <div class="f-sum">
+                        <input type="number" value="${e.sum}" oninput="updateExpense(${e.id}, 'sum', this.value)" placeholder="Сумма" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <button class="btn-delete" onclick="deleteExpense(${e.id})">✕</button>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // Отрисовка упорядоченного сплит-плана на Главном экране
+        function renderSummary() {
+            const container = document.getElementById('summaryContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // Автоматическая сортировка: сначала 🥇, затем 🥈, в конце 🥉
+            const sorted = [...expenses].sort((a, b) => parseInt(a.priority) - parseInt(b.priority));
+
+            sorted.forEach(e => {
+                const p = parseInt(e.priority);
+                const badge = p === 1 ? '🥇 Критический' : p === 2 ? '🥈 Важный' : '🥉 Опциональный';
+                const card = document.createElement('div');
+                card.className = 'plan-card';
+                card.innerHTML = `
+                    <div class="row-main">
+                        <span>${e.name || 'Без названия'}</span>
+                        <span>${(Math.max(0, parseFloat(e.sum) || 0)).toLocaleString('ru-RU')} ₽</span>
+                    </div>
+                    <div class="row-sub">${badge}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Атомарное обновление полей без полной перерисовки DOM (сохраняет фокус)
+        function updateExpense(id, field, value) {
+            const e = expenses.find(x => x.id === id);
+            if (!e) return;
+            
+            if (field === 'sum') {
+                e[field] = Math.max(0, parseFloat(value) || 0);
+            } else if (field === 'priority') {
+                e[field] = parseInt(value) || 2;
+                renderRows(); // Перерисовываем селекты при смене приоритета
+            } else {
+                e[field] = value;
+            }
+            calculateSplits();
+        }
+
+        // Добавление новой пустой строки расхода
+        function addNewRow() {
+            const newId = expenses.length > 0 ? Math.max(...expenses.map(e => e.id)) + 1 : 1;
+            expenses.push({ id: newId, name: '', sum: 0, priority: 2 });
+            renderRows();
+            calculateSplits();
+        }
+
+        // Удаление строки расхода
+        function deleteExpense(id) {
+            expenses = expenses.filter(x => x.id !== id);
+            renderRows();
+            calculateSplits();
+        }
+
+        // Первичный запуск всей системы при загрузке страницы
+        window.addEventListener('DOMContentLoaded', () => {
+            renderRows();
+            calculateSplits();
+        });
     </script>
 </body>
 </html>
