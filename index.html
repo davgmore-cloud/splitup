@@ -29,14 +29,14 @@
         .slider-container { width: 100%; height: 100%; overflow: hidden; position: relative; z-index: 10; }
         .slider-wrapper { display: flex; width: 300%; height: 100%; transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); will-change: transform; }
         
-        /* Исправлен верхний отступ — контент опущен из-под челки/шторки смартфона */
+        /* Безопасные отступы сверху, чтобы заголовки вкладок гарантированно вышли из-под шторки телефона */
         .screen { 
             width: 33.3333%; height: 100%; display: flex; flex-direction: column; 
-            align-items: center; padding: calc(45px + env(safe-area-inset-top)) 14px calc(95px + env(safe-area-inset-bottom)) 14px; 
+            align-items: center; padding: calc(55px + env(safe-area-inset-top)) 14px calc(95px + env(safe-area-inset-bottom)) 14px; 
             overflow-y: auto; box-sizing: border-box; flex-shrink: 0; -webkit-overflow-scrolling: touch; 
         }
         h1 { font-size: 22px; margin: 5px 0 20px 0; font-weight: 800; letter-spacing: -0.5px; text-align: center; width: 100%; }
-        /* КРУГ И ПОЛНОСТЬЮ ИСПРАВЛЕННЫЕ ЛЕНИВЫЕ ВОЛНЫ */
+        /* КРУГ И МОНУМЕНТАЛЬНО НАДЕЖНЫЕ ЛЕНИВЫЕ ВОЛНЫ */
         .circle-outer { position: relative; width: 220px; height: 220px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px; flex-shrink: 0; }
         .circle-container { 
             position: relative; width: 165px; height: 165px; border-radius: 50%; 
@@ -45,16 +45,16 @@
             border: none; z-index: 5; display: flex; justify-content: center; align-items: center; 
         }
         
-        /* Жесткая фиксация контейнера воды */
+        /* Контейнер жидкости: регулируется строго через height в JS от 0% до 100% */
         .liquid-water { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: transparent; transition: transform 0.75s ease-out; z-index: 10; 
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; 
+            background: transparent; transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1); z-index: 10; 
         }
         
-        /* Исправленные ленивые ультра-плавные волны с жесткими координатами центра */
+        /* Волны намертво привязаны к нижней границе контейнера жидкости и центрированы */
         .wave-back, .wave-front { 
             position: absolute; width: 340px; height: 340px; 
-            top: 75%; left: 50%; border-radius: 41%; 
+            bottom: -15px; left: 50%; border-radius: 41%; 
             transform-origin: 50% 47%;
         }
         
@@ -76,7 +76,7 @@
         @keyframes ChurnBack { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
         @keyframes ChurnFront { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(-360deg); } }
 
-        /* ИИ-АССИСТЕНТ И СВОДНЫЕ КАРТОЧКИ */
+        /* ИИ-АССИСТЕНТ И СВОДНЫЕ ПАНЕЛИ */
         .assistant-card { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 16px; padding: 14px; width: 100%; max-width: 380px; box-sizing: border-box; margin-bottom: 15px; font-size: 13px; line-height: 1.45; }
         .assistant-card.crisis { background: #fef2f2; border-color: #fca5a5; }
         .assistant-title { font-weight: 800; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
@@ -85,6 +85,7 @@
         .zone-header { font-size: 13px; color: var(--text-gray); font-weight: 700; text-align: center; margin: 15px 0 10px 0; text-transform: uppercase; }
         .zone-list { display: flex; flex-direction: column; gap: 8px; width: 100%; margin-bottom: 10px; }
         .plan-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; box-shadow: 0 2px 6px rgba(0,0,0,0.01); }
+        .plan-card.calendar-card { border-left: 4px solid var(--accent-blue); }
         .plan-card .row-main { display: flex; justify-content: space-between; font-weight: 700; font-size: 14px; }
         .plan-card .row-sub { font-size: 12px; color: var(--text-gray); margin-top: 3px; }
         /* ДИНАМИЧЕСКИЕ ТАБЛИЦЫ ДОХОДОВ И РАСХОДОВ */
@@ -113,7 +114,7 @@
 
         .btn-delete { background: none; border: none; color: var(--text-gray); font-size: 15px; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; flex-shrink: 0; }
         
-        /* Лаконичная кнопка добавления */
+        /* Кнопка добавления по вашему макету */
         .btn-add { width: 100%; background: var(--bg-color); border: 1px dashed var(--card-border); padding: 10px; border-radius: 10px; font-weight: 700; color: var(--accent-blue); cursor: pointer; font-size: 13px; outline: none; margin-bottom: 5px; }
 
         /* ЛЕГЕНДА ПРИОРИТЕТОВ В САМОМ НИЗУ ТАБЛИЦЫ РАСХОДОВ */
@@ -133,7 +134,7 @@
         <!-- Горизонтальная лента экранов, переключение по боковым тапам и точкам -->
         <div class="slider-wrapper" id="mainSlider">
             
-            <!-- ЭКРАН 1: ЖИВОЙ ОКЕАН И УМНОЕ ИИ-ОКНО С СОВЕТАМИ -->
+            <!-- ЭКРАН 1: ЖИВОЙ ОКЕАН И УМНОЕ ИИ-ОКНО С КАЛЕНДАРЕМ -->
             <div class="screen" onclick="handleSideTap(event)">
                 <div class="circle-outer">
                     <div class="circle-container" id="circleBound">
@@ -151,7 +152,7 @@
                 </div>
 
                 <div class="plan-container">
-                    <div class="zone-header">Ближайшие распределения</div>
+                    <div class="zone-header" id="calendarHeader">Календарный план выплат</div>
                     <div class="zone-list" id="summaryContainer"></div>
                 </div>
             </div>
@@ -186,7 +187,7 @@
                     <!-- Лаконичная кнопка добавления -->
                     <button class="btn-add" onclick="addNewRow()">+ Добавить</button>
 
-                    <!-- Перенесено строго в самый низ формы после кнопки добавления -->
+                    <!-- Перенесено строго в самый вниз формы после кнопки добавления -->
                     <div class="legend-box">
                         <div class="legend-item">
                             <div class="legend-dot" style="background:var(--accent-red)"></div>
@@ -207,7 +208,7 @@
         </div>
     </div>
 
-    <!-- Системные кликабельные точки навигации iOS -->
+    <!-- Кликая по точкам, можно также переключаться намертво -->
     <div class="ios-nav-dots">
         <button class="dot active" onclick="moveToScreen(0)" aria-label="Экран 1"></button>
         <button class="dot" onclick="moveToScreen(1)" aria-label="Экран 2"></button>
@@ -220,7 +221,7 @@
             { id: 2, name: 'Аванс', sum: 30000, payDate: 30 }
         ];
 
-        // Динамическая база данных расходов (пока без жесткой привязки к дате, сортируется по приоритету)
+        // Динамическая база данных расходов (сортируется по приоритету и календарным датам)
         let expenses = [
             { id: 1, name: 'Аренда квартиры', sum: 35000, priority: 1 },
             { id: 2, name: 'Продукты питания', sum: 20000, priority: 1 },
@@ -302,13 +303,13 @@
             const assistantCard = document.getElementById('assistantCard');
             const assistantText = document.getElementById('assistantText');
 
-            // Управление высотой синей воды в зависимости от остатка (0% — пусто, 100% — полный бак)
+            // НЕУБИВАЕМОЕ УПРАВЛЕНИЕ: Вычисляем процент заполнения от 0 до 100%
             let pct = totalIncome > 0 ? (freeBudget / totalIncome) * 100 : 0;
             if (freeBudget < 0) pct = 0;
             
-            // Физика оригинальных волн: от 5% (полный бак) до 95% (пустой круг)
-            const translateValue = Math.max(5, Math.min(95, 100 - pct));
-            waterLevel.style.transform = `translateY(${translateValue}%)`;
+            // Ограничиваем высоту от 5% (минимальное дно) до 100% (полный бак)
+            const fillHeight = Math.max(5, Math.min(100, pct));
+            waterLevel.style.height = `${fillHeight}%`;
 
             // УМНЫЙ КАЛЕНДАРНЫЙ ИИ-АНАЛИЗ
             if (freeBudget < 0) {
@@ -323,11 +324,11 @@
                 if (monthlyPossibleSavings > 0) {
                     const monthsNeeded = Math.ceil(deficit / monthlyPossibleSavings);
                     
-                    let text = `⚠️ <b>Обнаружен дефицит бюджета.</b> Минус составляет: ${deficit.toLocaleString('ru-RU')} ₽.<br>
+                    let text = `⚠️ <b>Обнаружен дефицит бюджета.</b> Общий минус: ${deficit.toLocaleString('ru-RU')} ₽.<br>
                     🤖 <b>План мягкой амортизации на ${monthsNeeded} ${getMonthWord(monthsNeeded)} без потери комфорта:</b><br>
                     • Мы сохранили 40% на свободные траты (🟢) и 80% на важные платежи (🟡), чтобы оставались деньги на жизнь.<br>
                     • Обязательные платежи (🔴) зафиксированы за основным доходом от <b>${maxIncomeObj ? maxIncomeObj.name : 'основного источника'}</b>.<br>
-                    • За счет частичной экономии в этом месяце мы безболезненно удержим <b>${monthlyPossibleSavings.toLocaleString('ru-RU')} ₽</b>. Снизьте свободные траты на 60%.`;
+                    • За счет частичной экономии в этом месяце мы удержим <b>${monthlyPossibleSavings.toLocaleString('ru-RU')} ₽</b>. Снизьте свободные траты на 60%.`;
                     
                     // Поиск и защита мелких доходов (до 15 000 руб), которые ИИ закрывает от списания базы
                     let protectedIncomes = incomes.filter(i => i.id !== (maxIncomeObj ? maxIncomeObj.id : -1) && i.sum <= 15000 && i.sum > 0);
@@ -336,7 +337,7 @@
                     }
                     assistantText.innerHTML = text;
                 } else {
-                    assistantText.innerHTML = `🚨 <b>Критический разрыв:</b> Ваши доходы не способны покрыть даже жесткие обязательные платежи (🔴). Требуется срочная оптимизация крупных фиксированных расходов или поиск подработки.`;
+                    assistantText.innerHTML = `🚨 <b>Критический разрыв:</b> Ваши доходы не способны покрыть даже жесткие обязательные платежи (🔴). Требуется срочная оптимизация крупных фиксированных расходов.`;
                 }
             } else {
                 assistantCard.className = "assistant-card";
@@ -344,11 +345,10 @@
                 const funTarget = Math.round(freeBudget * 0.6);
                 
                 let text = `✨ <b>Баланс профицитный.</b> Все расходы полностью перекрыты вашими доходами.<br>
-                💼 <b>Долгосрочный план распределения от ИИ:</b><br>
+                💼 <b>Долгосрочный план распределения от ассистента:</b><br>
                 • Направьте <b>${investTarget.toLocaleString('ru-RU')} ₽</b> (40%) в накопления. За 4 месяца это сформирует подушку безопасности в размере ${(investTarget * 4).toLocaleString('ru-RU')} ₽.<br>
                 • Остальные <b>${funTarget.toLocaleString('ru-RU')} ₽</b> выделяются на свободные траты (🟢) для комфортной жизни.`;
 
-                // Совет по распределению мелких авансов
                 let shortIncomes = incomes.filter(i => i.id !== (maxIncomeObj ? maxIncomeObj.id : -1) && i.sum <= 20000 && i.sum > 0);
                 if (shortIncomes.length > 0) {
                     text += `<br><br>📅 <b>Календарный анализ:</b> Мелкие зачисления (${shortIncomes.map(x => x.name).join(', ')}) автоматически направлены алгоритмом напрямую на обеспечение вашего досуга и свободных трат к датам их выплат.`;
@@ -356,7 +356,7 @@
                 assistantText.innerHTML = text;
             }
 
-            renderSummary();
+            renderSummary(maxIncomeObj);
         }
 
         function getMonthWord(number) {
@@ -367,7 +367,7 @@
             if (lastDigit >= 2 && lastDigit <= 4) return 'месяца';
             return 'месяцев';
         }
-        // Рендеринг таблицы "Доход:" (Вкладка 2)
+        // Рендеринг интерактивной таблицы "Доход:" (Вкладка 2)
         function renderIncomeRows() {
             const container = document.getElementById('incomeRowsContainer');
             if (!container) return;
@@ -392,7 +392,7 @@
             });
         }
 
-        // Рендеринг таблицы "Расходы" (Вкладка 3)
+        // Рендеринг интерактивной таблицы "Расходы" (Вкладка 3)
         function renderRows() {
             const container = document.getElementById('rowsContainer');
             if (!container) return;
@@ -402,7 +402,6 @@
                 const row = document.createElement('div');
                 row.className = 'list-item-row';
                 
-                // Назначение класса цвета для чистых круглых кнопок приоритетов
                 let prClass = 'pr-2';
                 if (p.priority === 1) prClass = 'pr-1';
                 if (p.priority === 3) prClass = 'pr-3';
@@ -423,31 +422,99 @@
             });
         }
 
-        // Рендеринг упорядоченного плана на Главном экране (Вкладка 1)
-        function renderSummary() {
+        // УМНЫЙ КАЛЕНДАРНЫЙ ВЫВОД ОТ ИИ: Группировка расходов по датам доходов на Главном экране
+        function renderSummary(maxIncomeObj) {
             const container = document.getElementById('summaryContainer');
             if (!container) return;
             container.innerHTML = '';
 
-            // Автоматическая сортировка расходов: Обязательные (1) -> Важные (2) -> Свободные (3)
-            const sorted = [...expenses].sort((a, b) => a.priority - b.priority);
+            if (incomes.length === 0 || expenses.length === 0) {
+                container.innerHTML = '<div style="text-align:center; font-size:13px; color:var(--text-gray); padding:20px;">Добавьте доходы и расходы для построения календаря</div>';
+                return;
+            }
 
-            sorted.forEach(p => {
-                const badge = p.priority === 1 ? '🔴 Обязательный' : p.priority === 2 ? '🟡 Важный' : '🟢 Свободный';
+            // Создаем копию трат для распределения по календарным мешкам доходов
+            let remainingExpenses = [...expenses].sort((a, b) => a.priority - b.priority);
+            
+            // Сортируем доходы: сначала пускаем самый крупный (туда пойдут критические расходы)
+            let sortedIncomes = [...incomes].sort((a, b) => {
+                if (maxIncomeObj && a.id === maxIncomeObj.id) return -1;
+                if (maxIncomeObj && b.id === maxIncomeObj.id) return 1;
+                return b.sum - a.sum;
+            });
+
+            // Карта распределения: ID дохода -> массив закрепленных за ним расходов
+            let allocationMap = {};
+            sortedIncomes.forEach(inc => {
+                allocationMap[inc.id] = {
+                    info: inc,
+                    allocatedExpenses: [],
+                    availableCash: Math.max(0, parseFloat(inc.sum) || 0)
+                };
+            });
+
+            // РАСПРЕДЕЛИТЕЛЬНЫЙ ДВИЖОК: ИИ раскладывает траты по кошелькам дат
+            remainingExpenses.forEach(exp => {
+                let success = false;
+                // Ищем подходящий доход, начиная с самого крупного
+                for (let i = 0; i < sortedIncomes.length; i++) {
+                    let incId = sortedIncomes[i].id;
+                    let bucket = allocationMap[incId];
+                    
+                    // Если в мешке даты хватает денег — бросаем расход туда
+                    if (bucket.availableCash >= exp.sum) {
+                        bucket.allocatedExpenses.push(exp);
+                        bucket.availableCash -= exp.sum;
+                        success = true;
+                        break;
+                    }
+                }
+                // Если ни в один мешок по отдельности не влезло (превышен лимит), кидаем в самый крупный источник
+                if (!success && maxIncomeObj && allocationMap[maxIncomeObj.id]) {
+                    allocationMap[maxIncomeObj.id].allocatedExpenses.push(exp);
+                    allocationMap[maxIncomeObj.id].availableCash -= exp.sum;
+                }
+            });
+
+            // ОТРИСОВКА КАРТОЧЕК: Выводим человеку четкий план — сколько и какого числа платить
+            incomes.forEach(inc => {
+                const bucket = allocationMap[inc.id];
+                if (!bucket) return;
+
                 const card = document.createElement('div');
-                card.className = 'plan-card';
+                card.className = 'plan-card calendar-card';
+                
+                let totalGroupSum = 0;
+                let listHtml = '';
+
+                bucket.allocatedExpenses.forEach(e => {
+                    totalGroupSum += e.sum;
+                    let dotColor = e.priority === 1 ? 'var(--accent-red)' : e.priority === 2 ? 'var(--accent-amber)' : 'var(--accent-green)';
+                    listHtml += `<div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-gray); margin-top:4px;">
+                        <span><span style="color:${dotColor}; margin-right:4px;">●</span>${e.name || 'Без названия'}</span>
+                        <span>${e.sum.toLocaleString('ru-RU')} ₽</span>
+                    </div>`;
+                });
+
+                if (bucket.allocatedExpenses.length === 0) {
+                    listHtml = '<div style="font-size:12px; color:var(--text-gray); margin-top:4px; font-style:italic;">Траты не запланированы, весь доход свободен для жизни</div>';
+                }
+
                 card.innerHTML = `
                     <div class="row-main">
-                        <span>${p.name || 'Без названия'}</span>
-                        <span>${(Math.max(0, parseFloat(p.sum) || 0)).toLocaleString('ru-RU')} ₽</span>
+                        <span style="color:var(--accent-blue)">📅 ${inc.payDate}-е число (${inc.name || 'Доход'})</span>
+                        <span>${totalGroupSum.toLocaleString('ru-RU')} ₽</span>
                     </div>
-                    <div class="row-sub">${badge} платеж</div>
+                    <div class="row-sub" style="border-bottom: 1px dashed var(--card-border); padding-bottom: 6px; margin-bottom: 4px; font-weight:700;">
+                        Выплаты из этого зачисления:
+                    </div>
+                    ${listHtml}
                 `;
                 container.appendChild(card);
             });
         }
 
-        // Логика управления таблицей Доходов
+        // Вспомогательные CRUD операции для таблицы Доходов
         function updateIncome(id, field, value) {
             const inc = incomes.find(x => x.id === id);
             if (!inc) return;
@@ -459,7 +526,7 @@
 
         function addNewIncomeRow() {
             const newId = incomes.length > 0 ? Math.max(...incomes.map(i => i.id)) + 1 : 1;
-            incomes.push({ id: newId, name: '', sum: 0, payDate: 10 });
+            incomes.push({ id: newId, name: '', sum: 0, payDate: 15 });
             renderIncomeRows();
             calculateSplits();
         }
@@ -470,7 +537,7 @@
             calculateSplits();
         }
 
-        // Логика управления таблицей Расходов
+        // Вспомогательные CRUD операции для таблицы Расходов
         function cyclePriority(id) {
             const p = expenses.find(x => x.id === id);
             if (p) {
@@ -501,7 +568,7 @@
             calculateSplits();
         }
 
-        // Глобальный запуск при полной загрузке приложения
+        // Первичная инициализация системы
         window.addEventListener('DOMContentLoaded', () => {
             renderIncomeRows();
             renderRows();
